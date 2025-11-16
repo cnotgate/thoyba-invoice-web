@@ -15,7 +15,6 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 	submitBtn.textContent = 'Menyimpan...';
 
 	// Basic validation
-	const supplier = document.getElementById('supplier').value.trim();
 	const supplierSearch = document.getElementById('supplierSearch').value.trim();
 	const branch = document.querySelector('input[name="branch"]:checked');
 	const date = document.getElementById('date').value;
@@ -172,25 +171,21 @@ async function loadSuppliers() {
 			console.log('Type of supplierOptions:', typeof supplierOptions);
 			console.log('Is array:', Array.isArray(supplierOptions));
 			
-			// Populate the select dropdown with supplier options
-			const select = document.getElementById('supplier');
-			if (!select) {
-				console.error('Supplier select not found');
+			// Populate the datalist with supplier options
+			const datalist = document.getElementById('supplierList');
+			if (!datalist) {
+				console.error('Supplier datalist not found');
 				return;
 			}
-			console.log('Select element:', select);
-			// Clear existing options except the first one
-			select.innerHTML = '<option value="">Pilih supplier...</option>';
+			console.log('Datalist element:', datalist);
+			// Clear existing options
+			datalist.innerHTML = '';
 			supplierOptions.forEach((supplier) => {
 				const option = document.createElement('option');
 				option.value = supplier.name || supplier;
-				option.textContent = supplier.name || supplier;
-				select.appendChild(option);
+				datalist.appendChild(option);
 			});
-			console.log('Select populated with', supplierOptions.length, 'suppliers');
-			
-			// Initialize search functionality
-			initializeSupplierSearch();
+			console.log('Datalist populated with', supplierOptions.length, 'suppliers');
 		} else {
 			console.error('Failed to load suppliers');
 		}
@@ -199,58 +194,5 @@ async function loadSuppliers() {
 	}
 }
 
-function initializeSupplierSearch() {
-	const searchInput = document.getElementById('supplierSearch');
-	const select = document.getElementById('supplier');
-	
-	searchInput.addEventListener('input', function() {
-		const searchTerm = this.value.toLowerCase().trim();
-		const options = select.querySelectorAll('option');
-		
-		if (searchTerm === '') {
-			// Show all options when search is empty
-			select.style.display = 'none';
-			options.forEach(option => {
-				option.style.display = 'block';
-			});
-			return;
-		}
-		
-		let hasVisibleOptions = false;
-		options.forEach(option => {
-			if (option.value === '') return; // Skip placeholder option
-			
-			const text = option.textContent.toLowerCase();
-			if (text.includes(searchTerm)) {
-				option.style.display = 'block';
-				hasVisibleOptions = true;
-			} else {
-				option.style.display = 'none';
-			}
-		});
-		
-		// Show select if there are matching options
-		select.style.display = hasVisibleOptions ? 'block' : 'none';
-	});
-	
-	searchInput.addEventListener('focus', function() {
-		if (this.value.trim() !== '') {
-			select.style.display = 'block';
-		}
-	});
-	
-	searchInput.addEventListener('blur', function() {
-		// Hide select after a short delay to allow clicking on options
-		setTimeout(() => {
-			select.style.display = 'none';
-		}, 200);
-	});
-	
-	select.addEventListener('change', function() {
-		if (this.value) {
-			searchInput.value = this.options[this.selectedIndex].text;
-			select.style.display = 'none';
-		}
-	});
-}// Load suppliers on page load
+// Load suppliers on page load
 loadSuppliers();
