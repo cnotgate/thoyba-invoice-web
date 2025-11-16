@@ -167,7 +167,15 @@ async function loadSuppliers() {
 	console.log('=== LOAD SUPPLIERS STARTED ===');
 	try {
 		console.log('Starting to load suppliers...');
-		const response = await fetch(`${API_BASE_URL}/api/supplierList`);
+		// Try the supplierList endpoint first, fallback to test endpoint if needed
+		let response = await fetch(`${API_BASE_URL}/api/supplierList`);
+		
+		// If supplierList fails, try the test endpoint
+		if (!response.ok) {
+			console.log('supplierList endpoint failed, trying test endpoint...');
+			response = await fetch(`${API_BASE_URL}/api/test-suppliers`);
+		}
+		
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
@@ -186,7 +194,8 @@ async function loadSuppliers() {
 				initializeSupplierSearch();
 			}
 		} else {
-			console.error('Failed to load suppliers, status:', response.status);
+			console.error('Failed to load suppliers from both endpoints, status:', response.status);
+			console.error('Response text:', await response.text());
 		}
 	} catch (error) {
 		console.error('Error loading suppliers:', error);

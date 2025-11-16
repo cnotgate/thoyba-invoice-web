@@ -147,6 +147,25 @@ server.get('/test-suppliers', (req, res) => {
 	res.json(['Test Supplier 1', 'Test Supplier 2']);
 });
 
+// Custom supplierList endpoint
+server.get('/supplierList', (req, res) => {
+	try {
+		const dbPath = path.join(__dirname, 'db.json');
+		const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+		
+		// Return the supplierList array from db.json
+		if (dbData.supplierList && Array.isArray(dbData.supplierList)) {
+			res.json(dbData.supplierList);
+		} else {
+			console.error('supplierList not found in db.json');
+			res.status(404).json({ error: 'Supplier list not found' });
+		}
+	} catch (error) {
+		console.error('Error reading supplierList:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
+});
+
 // Use JSON Server middleware and router
 server.use(middlewares);
 server.use(router);
