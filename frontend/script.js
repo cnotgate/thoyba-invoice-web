@@ -29,9 +29,9 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 	}
 
 	// Validate supplier is in the list
-	const validSuppliers = supplierOptions.map((s) => s.name || s);
+	const validSuppliers = supplierOptions.map(s => s.name || s);
 	if (!validSuppliers.includes(supplier)) {
-		showToast('Supplier tidak valid. Pilih dari daftar yang tersedia.', 'error');
+		showToast('Supplier tidak valid. Pilih dari dropdown.', 'error');
 		submitBtn.disabled = false;
 		submitBtn.textContent = 'Simpan';
 		return;
@@ -170,28 +170,28 @@ async function loadSuppliers() {
 			console.log('Suppliers loaded:', supplierOptions);
 			console.log('Type of supplierOptions:', typeof supplierOptions);
 			console.log('Is array:', Array.isArray(supplierOptions));
-
-			// Populate the datalist with supplier options
-			const datalist = document.getElementById('supplierList');
-			if (!datalist) {
-				console.error('Datalist not found');
+			
+			// Populate the select dropdown with supplier options
+			const select = document.getElementById('supplier');
+			if (!select) {
+				console.error('Supplier select not found');
 				return;
 			}
-			console.log('Datalist element:', datalist);
-			datalist.innerHTML = ''; // Clear existing options
+			console.log('Select element:', select);
+			// Clear existing options except the first one
+			select.innerHTML = '<option value="">Pilih supplier...</option>';
 			supplierOptions.forEach((supplier) => {
 				const option = document.createElement('option');
 				option.value = supplier.name || supplier;
-				datalist.appendChild(option);
+				option.textContent = supplier.name || supplier;
+				select.appendChild(option);
 			});
-			console.log('Datalist populated with', supplierOptions.length, 'suppliers');
+			console.log('Select populated with', supplierOptions.length, 'suppliers');
 		} else {
 			console.error('Failed to load suppliers');
 		}
 	} catch (error) {
 		console.error('Error loading suppliers:', error);
 	}
-}
-
-// Load suppliers on page load
+}// Load suppliers on page load
 loadSuppliers();
