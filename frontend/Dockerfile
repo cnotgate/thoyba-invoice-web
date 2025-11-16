@@ -4,6 +4,9 @@ FROM nginx:alpine
 # Copy static files to nginx html directory
 COPY . /usr/share/nginx/html
 
+# Verify files are copied
+RUN ls -la /usr/share/nginx/html
+
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
