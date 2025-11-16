@@ -164,6 +164,7 @@ function clearForm() {
 
 // Load suppliers from backend
 async function loadSuppliers() {
+	console.log('=== LOAD SUPPLIERS STARTED ===');
 	try {
 		console.log('Starting to load suppliers...');
 		const response = await fetch(`${API_BASE_URL}/api/supplierList`);
@@ -175,8 +176,13 @@ async function loadSuppliers() {
 			
 			// Wait for DOM to be fully loaded
 			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', () => initializeSupplierSearch());
+				console.log('DOM still loading, waiting for DOMContentLoaded...');
+				document.addEventListener('DOMContentLoaded', () => {
+					console.log('DOMContentLoaded fired, initializing supplier search...');
+					initializeSupplierSearch();
+				});
 			} else {
+				console.log('DOM already loaded, initializing supplier search immediately...');
 				initializeSupplierSearch();
 			}
 		} else {
@@ -185,18 +191,36 @@ async function loadSuppliers() {
 	} catch (error) {
 		console.error('Error loading suppliers:', error);
 	}
+	console.log('=== LOAD SUPPLIERS COMPLETED ===');
 }
 
 function initializeSupplierSearch() {
+	console.log('Initializing supplier search...');
+	
 	const searchInput = document.getElementById('supplierSearch');
 	const dropdown = document.getElementById('supplierDropdown');
 	const hiddenInput = document.getElementById('supplierSelected');
 	
-	if (!searchInput || !dropdown || !hiddenInput) {
-		console.error('Supplier search elements not found!');
+	console.log('Search input element:', searchInput);
+	console.log('Dropdown element:', dropdown);
+	console.log('Hidden input element:', hiddenInput);
+	
+	if (!searchInput) {
+		console.error('CRITICAL: supplierSearch input not found!');
 		return;
 	}
 	
+	if (!dropdown) {
+		console.error('CRITICAL: supplierDropdown not found!');
+		return;
+	}
+	
+	if (!hiddenInput) {
+		console.error('CRITICAL: supplierSelected hidden input not found!');
+		return;
+	}
+	
+	console.log('All supplier search elements found successfully');
 	console.log('Supplier search initialized successfully');
 	
 	// Populate dropdown with all suppliers initially
