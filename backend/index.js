@@ -152,7 +152,7 @@ server.use(middlewares);
 server.use(router);
 
 // Mount json-server on /api
-app.use('/api', server);
+app.use('/api', verifyToken, server);
 
 // Start server
 app.listen(port, () => {

@@ -3,6 +3,11 @@ const API_BASE_URL = window.location.origin.includes('localhost')
 	? 'http://localhost:3001'
 	: window.location.origin;
 
+// Check if user is logged in
+if (!localStorage.getItem('adminToken')) {
+    window.location.href = '/admin/';
+}
+
 document.getElementById('invoiceForm').addEventListener('submit', function (event) {
 	console.log('Form submit prevented');
 
@@ -68,6 +73,7 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
+			Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
 		},
 		body: JSON.stringify(invoiceData),
 	})
@@ -161,7 +167,12 @@ function clearForm() {
 // Load suppliers from backend
 async function loadSuppliers() {
 	try {
-		const response = await fetch(`${API_BASE_URL}/api/supplierList`);
+		const token = localStorage.getItem('adminToken');
+		const response = await fetch(`${API_BASE_URL}/api/supplierList`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
