@@ -173,14 +173,17 @@ async function loadSuppliers() {
 
 			// Populate the datalist with supplier options
 			const datalist = document.getElementById('supplierList');
+			if (!datalist) {
+				console.error('Datalist not found');
+				return;
+			}
 			console.log('Datalist element:', datalist);
-			let optionsHTML = '';
+			datalist.innerHTML = ''; // Clear existing options
 			supplierOptions.forEach((supplier) => {
-				const value = supplier.name || supplier;
-				optionsHTML += `<option value="${value}"></option>`;
+				const option = document.createElement('option');
+				option.value = supplier.name || supplier;
+				datalist.appendChild(option);
 			});
-			console.log('Options HTML:', optionsHTML);
-			datalist.innerHTML = optionsHTML;
 			console.log('Datalist populated with', supplierOptions.length, 'suppliers');
 		} else {
 			console.error('Failed to load suppliers');
