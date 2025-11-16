@@ -174,9 +174,10 @@ async function loadSuppliers() {
 			// Populate the datalist with supplier options
 			const datalist = document.getElementById('supplierList');
 			if (!datalist) {
-				console.error('Supplier datalist not found');
+				console.error('Supplier datalist not found - this should not happen with current code');
 				return;
 			}
+			console.log('DATALIST FOUND - Using datalist instead of select element');
 			console.log('Datalist element:', datalist);
 			// Clear existing options
 			datalist.innerHTML = '';
