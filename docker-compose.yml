@@ -3,13 +3,10 @@ version: '3.8'
 services:
   # Reverse proxy
   nginx:
-    image: nginx:alpine
+    build: ./nginx
     ports:
-      - '80:80'
+      - '8600:80'
       - '443:443' # For future SSL
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro # For SSL certificates
     depends_on:
       - backend
       - frontend
