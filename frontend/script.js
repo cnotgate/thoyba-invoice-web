@@ -3,11 +3,6 @@ const API_BASE_URL = window.location.origin.includes('localhost')
 	? 'http://localhost:3001'
 	: window.location.origin;
 
-// Check if user is logged in
-if (!localStorage.getItem('adminToken')) {
-    window.location.href = '/admin/';
-}
-
 document.getElementById('invoiceForm').addEventListener('submit', function (event) {
 	console.log('Form submit prevented');
 
@@ -81,6 +76,11 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 			if (response.ok) {
 				showToast('Invoice berhasil disimpan!');
 				clearForm();
+			} else if (response.status === 401) {
+				showToast('Authentication required. Redirecting to login...', 'error');
+				setTimeout(() => {
+					window.location.href = '/admin/';
+				}, 2000);
 			} else {
 				showToast('Gagal menyimpan invoice. Status: ' + response.status, 'error');
 			}
@@ -176,6 +176,9 @@ async function loadSuppliers() {
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
+		} else if (response.status === 401) {
+			console.error('Authentication required. Please login first.');
+			showToast('Please login to access suppliers.', 'error');
 		} else {
 			console.error('Failed to load suppliers');
 		}
