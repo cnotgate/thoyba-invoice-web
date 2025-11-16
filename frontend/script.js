@@ -29,7 +29,7 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 	}
 
 	// Validate supplier is in the list
-	const validSuppliers = supplierOptions.map(s => s.name || s);
+	const validSuppliers = supplierOptions.map((s) => s.name || s);
 	if (!validSuppliers.includes(supplier)) {
 		showToast('Supplier tidak valid. Pilih dari daftar yang tersedia.', 'error');
 		submitBtn.disabled = false;
@@ -168,15 +168,16 @@ async function loadSuppliers() {
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
-			
+
 			// Populate the datalist with supplier options
 			const datalist = document.getElementById('supplierList');
-			datalist.innerHTML = ''; // Clear existing options
-			supplierOptions.forEach(supplier => {
-				const option = document.createElement('option');
-				option.value = supplier.name || supplier; // Handle both object and string formats
-				datalist.appendChild(option);
+			let optionsHTML = '';
+			supplierOptions.forEach((supplier) => {
+				const value = supplier.name || supplier;
+				optionsHTML += `<option value="${value}"></option>`;
 			});
+			datalist.innerHTML = optionsHTML;
+			console.log('Datalist populated with', supplierOptions.length, 'suppliers');
 		} else {
 			console.error('Failed to load suppliers');
 		}
