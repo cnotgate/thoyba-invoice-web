@@ -19,7 +19,7 @@ RUN mkdir -p /app/data
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV NODE_OPTIONS="--max-old-space-size=1024"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 # Expose port
 EXPOSE 3001
