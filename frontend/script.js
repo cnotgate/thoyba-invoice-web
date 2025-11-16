@@ -3,6 +3,9 @@ const API_BASE_URL = window.location.origin.includes('localhost')
 	? 'http://localhost:3001'
 	: window.location.origin;
 
+// Global variables
+let supplierOptions = [];
+
 document.getElementById('invoiceForm').addEventListener('submit', function (event) {
 	console.log('Form submit prevented');
 
@@ -26,8 +29,8 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 	}
 
 	// Validate supplier is in the list
-	let supplierOptions = [];
-	if (!supplierOptions.includes(supplier)) {
+	const validSuppliers = supplierOptions.map(s => s.name || s);
+	if (!validSuppliers.includes(supplier)) {
 		showToast('Supplier tidak valid. Pilih dari daftar yang tersedia.', 'error');
 		submitBtn.disabled = false;
 		submitBtn.textContent = 'Simpan';
@@ -165,6 +168,15 @@ async function loadSuppliers() {
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
+			
+			// Populate the datalist with supplier options
+			const datalist = document.getElementById('supplierList');
+			datalist.innerHTML = ''; // Clear existing options
+			supplierOptions.forEach(supplier => {
+				const option = document.createElement('option');
+				option.value = supplier.name || supplier; // Handle both object and string formats
+				datalist.appendChild(option);
+			});
 		} else {
 			console.error('Failed to load suppliers');
 		}
