@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice CV. Amlaza Baraka</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/icons@3.0.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Invoice CV. Amlaza Baraka</h1>
+            <div class="toggle-container">
+                <div id="modeIcon">
+                    <i id="sunIcon" class="cil cil-sun mode-icon"></i>
+                    <i id="moonIcon" class="cil cil-moon mode-icon" style="display: none;"></i>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <form id="invoiceForm">
+            <div class="form-group">
+                <label for="supplier">Nama Supplier *</label>
+                <input type="text" id="supplier" name="supplier" list="supplierList" required
+                    placeholder="Cari dan pilih supplier">
+                <datalist id="supplierList">
+                    <option value="PT Antarmitra Sembada">
+                    <option value="PT Air Mandiri Distribusindo">
+                    <option value="PT Anugerah Argon Mandiri">
+                    <option value="PT Akasia Inter Nusa">
+                    <option value="PT Bahtera Laju Nusantara">
+                    <option value="PT Bangun Citra Lestari">
+                    <option value="PT Berkat Bersama">
+                    <option value="PT Berkat Dukungan Niaga">
+                    <option value="PT Bevos Surya Perkasa">
+                    <option value="PT Cahaya Putri Bintang">
+                    <option value="PT Cahaya Makmur Prima Sejahtera">
+                    <option value="PT Daya Muda Agung">
+                    <option value="PT Dialogue Garmindo Utama">
+                    <option value="PT Enseval Putra Mega Trading">
+                    <option value="PT Hokian Anugerah Karya Abadi">
+                    <option value="PT Indofood">
+                    <option value="PT IndoMarco Adi Prima">
+                    <option value="PT Kreasi Perdana Indonesia">
+                    <option value="PT Kalista Prima">
+                    <option value="PT Laut Indah Jaya">
+                    <option value="PT Laut Timur Ardiprima">
+                    <option value="PT Mahkota Lestari">
+                    <option value="PT Marga Nusantara Jaya">
+                    <option value="PT Maju Anugerah Jaya Usaha">
+                    <option value="PT Mulia Anugerah Distribusindo">
+                </datalist>
+            </div>
+
+            <div class="form-group">
+                <label>Cabang *</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="branch" value="Kuripan" required> Kuripan</label>
+                    <label><input type="radio" name="branch" value="Cempaka"> Cempaka</label>
+                    <label><input type="radio" name="branch" value="Gatot"> Gatot</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Tanggal Nota *</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="invoiceNumber">No. Faktur *</label>
+                <input type="text" id="invoiceNumber" name="invoiceNumber" placeholder="Masukkan nomor faktur" required>
+                <small>Jika nomor faktur menggunakan huruf besar, maka isi dengan huruf besar juga.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="total">Total *</label>
+                <input type="text" id="total" name="total" placeholder="Contoh: 6000000 (angka saja)" required>
+                <small>Masukkan hanya angka saja (tidak ada titik maupun koma).</small>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Keterangan</label>
+                <textarea id="description" name="description" rows="4"
+                    placeholder="Masukkan keterangan jika ada"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button id="submitBtn" type="submit">Simpan</button>
+                <button type="button" onclick="clearForm()">Bersihkan</button>
+            </div>
+        </form>
+    </div>
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

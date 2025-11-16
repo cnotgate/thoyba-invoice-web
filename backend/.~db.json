@@ -1,0 +1,180 @@
+{
+  "invoices": [
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Cempaka",
+      "date": "2025-11-15",
+      "invoiceNumber": "23432FF33",
+      "total": "600.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:45:27.982Z",
+      "id": "1",
+      "paid": true
+    },
+    {
+      "supplier": "PT Akasia Inter Nusa",
+      "branch": "Cempaka",
+      "date": "2025-11-13",
+      "invoiceNumber": "23432FF33",
+      "total": "3.424.234.432,00",
+      "description": "222",
+      "timestamp": "2025-11-14T23:45:57.908Z",
+      "id": "2",
+      "paid": true
+    },
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Cempaka",
+      "date": "2025-11-15",
+      "invoiceNumber": "23432FF33",
+      "total": "500.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:48:15.485Z",
+      "id": "3",
+      "paid": true
+    },
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Cempaka",
+      "date": "2025-11-15",
+      "invoiceNumber": "23432FF33",
+      "total": "23.234.234,00",
+      "description": "sadadasd",
+      "timestamp": "2025-11-14T23:49:02.471Z",
+      "id": "4",
+      "paid": false
+    },
+    {
+      "supplier": "PT Air Mandiri Distribusindo",
+      "branch": "Gatot",
+      "date": "2025-11-27",
+      "invoiceNumber": "23432FF33",
+      "total": "55.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:50:06.744Z",
+      "id": "5",
+      "paid": true
+    },
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Cempaka",
+      "date": "2025-11-27",
+      "invoiceNumber": "23432FF33",
+      "total": "2.342.342.343,00",
+      "description": "sfdsdf",
+      "timestamp": "2025-11-14T23:50:20.311Z",
+      "id": "6",
+      "paid": false
+    },
+    {
+      "supplier": "PT Air Mandiri Distribusindo",
+      "branch": "Cempaka",
+      "date": "2025-11-14",
+      "invoiceNumber": "23432FF33",
+      "total": "550.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:51:24.513Z",
+      "id": "7",
+      "paid": false
+    },
+    {
+      "supplier": "PT Air Mandiri Distribusindo",
+      "branch": "Gatot",
+      "date": "2025-11-15",
+      "invoiceNumber": "23432FF33",
+      "total": "32.342.343,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:51:38.629Z",
+      "id": "8",
+      "paid": false
+    },
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Gatot",
+      "date": "2025-11-08",
+      "invoiceNumber": "23432FF33",
+      "total": "50.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:52:55.839Z",
+      "id": "9",
+      "paid": false
+    },
+    {
+      "supplier": "PT Akasia Inter Nusa",
+      "branch": "Cempaka",
+      "date": "2025-11-14",
+      "invoiceNumber": "SDFSDFSDF",
+      "total": "55.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:53:49.767Z",
+      "id": "10",
+      "paid": false
+    },
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Cempaka",
+      "date": "2025-11-14",
+      "invoiceNumber": "SDFSDFSDF",
+      "total": "444.444,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:54:01.673Z",
+      "id": "11",
+      "paid": false
+    },
+    {
+      "supplier": "PT Air Mandiri Distribusindo",
+      "branch": "Cempaka",
+      "date": "2025-11-14",
+      "invoiceNumber": "23432FF33",
+      "total": "555,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:54:48.778Z",
+      "id": "12",
+      "paid": false
+    },
+    {
+      "supplier": "PT Air Mandiri Distribusindo",
+      "branch": "Cempaka",
+      "date": "2025-11-15",
+      "invoiceNumber": "SDFSDFSDF",
+      "total": "550.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:55:11.203Z",
+      "id": "13",
+      "paid": false
+    },
+    {
+      "supplier": "PT Anugerah Argon Mandiri",
+      "branch": "Cempaka",
+      "date": "2025-11-13",
+      "invoiceNumber": "23432FF33",
+      "total": "4.000.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:55:47.568Z",
+      "id": "14",
+      "paid": false
+    },
+    {
+      "supplier": "PT Air Mandiri Distribusindo",
+      "branch": "Gatot",
+      "date": "2025-11-15",
+      "invoiceNumber": "23432FF33",
+      "total": "5.000.000,00",
+      "description": "",
+      "timestamp": "2025-11-14T23:58:50.085Z",
+      "id": "15",
+      "paid": false
+    },
+    {
+      "supplier": "PT Enseval Putra Mega Trading",
+      "branch": "Gatot",
+      "date": "2025-11-15",
+      "invoiceNumber": "ABCD",
+      "total": "5.000.000,00",
+      "description": "aaaaaa",
+      "timestamp": "2025-11-15T02:28:18.577Z",
+      "paid": false,
+      "id": "LLZv4kT"
+    }
+  ]
+}
