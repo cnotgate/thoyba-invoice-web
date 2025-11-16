@@ -27,7 +27,8 @@
         <form id="invoiceForm">
             <div class="form-group">
                 <label for="supplier">Nama Supplier *</label>
-                <select id="supplier" name="supplier" required>
+                <input type="text" id="supplierSearch" placeholder="Cari supplier..." autocomplete="off">
+                <select id="supplier" name="supplier" required style="display: none;">
                     <option value="">Pilih supplier...</option>
                 </select>
             </div>

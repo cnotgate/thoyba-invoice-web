@@ -16,12 +16,13 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 
 	// Basic validation
 	const supplier = document.getElementById('supplier').value.trim();
+	const supplierSearch = document.getElementById('supplierSearch').value.trim();
 	const branch = document.querySelector('input[name="branch"]:checked');
 	const date = document.getElementById('date').value;
 	const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
 	const total = document.getElementById('total').value.replace(/\./g, ''); // Remove formatting dots
 
-	if (!supplier || !branch || !date || !invoiceNumber || !total) {
+	if (!supplierSearch || !branch || !date || !invoiceNumber || !total) {
 		showToast('Harap isi semua field yang wajib.', 'error');
 		submitBtn.disabled = false;
 		submitBtn.textContent = 'Simpan';
@@ -30,8 +31,8 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 
 	// Validate supplier is in the list
 	const validSuppliers = supplierOptions.map(s => s.name || s);
-	if (!validSuppliers.includes(supplier)) {
-		showToast('Supplier tidak valid. Pilih dari dropdown.', 'error');
+	if (!validSuppliers.includes(supplierSearch)) {
+		showToast('Supplier tidak valid. Pilih dari daftar yang muncul saat mengetik.', 'error');
 		submitBtn.disabled = false;
 		submitBtn.textContent = 'Simpan';
 		return;
@@ -57,7 +58,7 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 
 	// If all good, submit to backend
 	const invoiceData = {
-		supplier: supplier,
+		supplier: supplierSearch,
 		branch: branch.value,
 		date: date,
 		invoiceNumber: invoiceNumber,
@@ -187,11 +188,69 @@ async function loadSuppliers() {
 				select.appendChild(option);
 			});
 			console.log('Select populated with', supplierOptions.length, 'suppliers');
+			
+			// Initialize search functionality
+			initializeSupplierSearch();
 		} else {
 			console.error('Failed to load suppliers');
 		}
 	} catch (error) {
 		console.error('Error loading suppliers:', error);
 	}
+}
+
+function initializeSupplierSearch() {
+	const searchInput = document.getElementById('supplierSearch');
+	const select = document.getElementById('supplier');
+	
+	searchInput.addEventListener('input', function() {
+		const searchTerm = this.value.toLowerCase().trim();
+		const options = select.querySelectorAll('option');
+		
+		if (searchTerm === '') {
+			// Show all options when search is empty
+			select.style.display = 'none';
+			options.forEach(option => {
+				option.style.display = 'block';
+			});
+			return;
+		}
+		
+		let hasVisibleOptions = false;
+		options.forEach(option => {
+			if (option.value === '') return; // Skip placeholder option
+			
+			const text = option.textContent.toLowerCase();
+			if (text.includes(searchTerm)) {
+				option.style.display = 'block';
+				hasVisibleOptions = true;
+			} else {
+				option.style.display = 'none';
+			}
+		});
+		
+		// Show select if there are matching options
+		select.style.display = hasVisibleOptions ? 'block' : 'none';
+	});
+	
+	searchInput.addEventListener('focus', function() {
+		if (this.value.trim() !== '') {
+			select.style.display = 'block';
+		}
+	});
+	
+	searchInput.addEventListener('blur', function() {
+		// Hide select after a short delay to allow clicking on options
+		setTimeout(() => {
+			select.style.display = 'none';
+		}, 200);
+	});
+	
+	select.addEventListener('change', function() {
+		if (this.value) {
+			searchInput.value = this.options[this.selectedIndex].text;
+			select.style.display = 'none';
+		}
+	});
 }// Load suppliers on page load
 loadSuppliers();
