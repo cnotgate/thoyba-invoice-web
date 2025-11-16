@@ -151,15 +151,8 @@ server.get('/test-suppliers', (req, res) => {
 server.use(middlewares);
 server.use(router);
 
-// Serve static files from frontend directories FIRST
-app.use('/admin-frontend', express.static(path.join(__dirname, '../admin-frontend')));
-app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
-
 // Mount json-server on /api
 app.use('/api', server);
-
-// For backward compatibility, also mount on root
-app.use('/', server);
 
 // Start server
 app.listen(port, () => {
