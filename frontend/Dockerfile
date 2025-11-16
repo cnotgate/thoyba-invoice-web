@@ -2,10 +2,7 @@
 FROM nginx:alpine
 
 # Copy static files to nginx html directory
-COPY index.html script.js styles.css /usr/share/nginx/html/
-
-# Verify files are copied
-RUN ls -la /usr/share/nginx/html
+COPY . /usr/share/nginx/html/
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
