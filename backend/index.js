@@ -152,15 +152,21 @@ server.use(middlewares);
 server.use(router);
 
 // Mount json-server on /api
-app.use('/api', (req, res, next) => {
-    // Allow public access to GET suppliers and POST invoices
-    if ((req.method === 'GET' && req.path === '/supplierList') ||
-        (req.method === 'POST' && req.path === '/invoices')) {
-        return next();
-    }
-    // Require auth for all other API routes
-    verifyToken(req, res, next);
-}, server);
+app.use(
+	'/api',
+	(req, res, next) => {
+		// Allow public access to GET suppliers and POST invoices
+		if (
+			(req.method === 'GET' && req.path === '/supplierList') ||
+			(req.method === 'POST' && req.path === '/invoices')
+		) {
+			return next();
+		}
+		// Require auth for all other API routes
+		verifyToken(req, res, next);
+	},
+	server
+);
 
 // Start server
 app.listen(port, () => {
