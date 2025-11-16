@@ -164,6 +164,7 @@ function clearForm() {
 // Load suppliers from backend
 async function loadSuppliers() {
 	try {
+		console.log('Starting to load suppliers...');
 		const response = await fetch(`${API_BASE_URL}/api/supplierList`);
 		if (response.ok) {
 			supplierOptions = await response.json();
@@ -171,28 +172,52 @@ async function loadSuppliers() {
 			console.log('Type of supplierOptions:', typeof supplierOptions);
 			console.log('Is array:', Array.isArray(supplierOptions));
 			
-			// Populate the datalist with supplier options
-			const datalist = document.getElementById('supplierList');
-			if (!datalist) {
-				console.error('Supplier datalist not found - this should not happen with current code');
-				return;
+			// Wait for DOM to be fully loaded
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', () => populateDatalist());
+			} else {
+				populateDatalist();
 			}
-			console.log('DATALIST FOUND - Using datalist instead of select element');
-			console.log('Datalist element:', datalist);
-			// Clear existing options
-			datalist.innerHTML = '';
-			supplierOptions.forEach((supplier) => {
-				const option = document.createElement('option');
-				option.value = supplier.name || supplier;
-				datalist.appendChild(option);
-			});
-			console.log('Datalist populated with', supplierOptions.length, 'suppliers');
 		} else {
-			console.error('Failed to load suppliers');
+			console.error('Failed to load suppliers, status:', response.status);
 		}
 	} catch (error) {
 		console.error('Error loading suppliers:', error);
 	}
+}
+
+function populateDatalist() {
+	console.log('Populating datalist...');
+	
+	// Populate the datalist with supplier options
+	const datalist = document.getElementById('supplierList');
+	const input = document.getElementById('supplierSearch');
+	
+	if (!datalist) {
+		console.error('CRITICAL ERROR: supplierList datalist element not found!');
+		console.log('Available elements:', document.querySelectorAll('[id]'));
+		return;
+	}
+	
+	if (!input) {
+		console.error('CRITICAL ERROR: supplierSearch input element not found!');
+		return;
+	}
+	
+	console.log('SUCCESS: Found datalist and input elements');
+	console.log('Datalist element:', datalist);
+	console.log('Input element:', input);
+	
+	// Clear existing options
+	datalist.innerHTML = '';
+	supplierOptions.forEach((supplier) => {
+		const option = document.createElement('option');
+		option.value = supplier.name || supplier;
+		datalist.appendChild(option);
+	});
+	
+	console.log('Datalist populated with', supplierOptions.length, 'suppliers');
+	console.log('DATALIST POPULATION COMPLETE');
 }
 
 // Load suppliers on page load
