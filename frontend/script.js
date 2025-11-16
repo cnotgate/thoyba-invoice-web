@@ -68,7 +68,6 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
 		},
 		body: JSON.stringify(invoiceData),
 	})
@@ -76,11 +75,6 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 			if (response.ok) {
 				showToast('Invoice berhasil disimpan!');
 				clearForm();
-			} else if (response.status === 401) {
-				showToast('Authentication required. Redirecting to login...', 'error');
-				setTimeout(() => {
-					window.location.href = '/admin/';
-				}, 2000);
 			} else {
 				showToast('Gagal menyimpan invoice. Status: ' + response.status, 'error');
 			}
@@ -167,18 +161,10 @@ function clearForm() {
 // Load suppliers from backend
 async function loadSuppliers() {
 	try {
-		const token = localStorage.getItem('adminToken');
-		const response = await fetch(`${API_BASE_URL}/api/supplierList`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
+		const response = await fetch(`${API_BASE_URL}/api/supplierList`);
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
-		} else if (response.status === 401) {
-			console.error('Authentication required. Please login first.');
-			showToast('Please login to access suppliers.', 'error');
 		} else {
 			console.error('Failed to load suppliers');
 		}
