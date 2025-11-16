@@ -231,7 +231,7 @@ async function loadInvoices(loadMore = false) {
 
 		const token = localStorage.getItem('adminToken');
 		const response = await fetch(
-			`${API_BASE_URL}/invoices/paginated?page=${currentPage}&limit=${invoicesPerPage}`,
+			`${API_BASE_URL}/api/invoices/paginated?page=${currentPage}&limit=${invoicesPerPage}`,
 			{
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -432,7 +432,7 @@ function renderInvoices(append = false) {
 async function togglePaymentStatus(invoiceId, isPaid) {
 	try {
 		const token = localStorage.getItem('adminToken');
-		const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
+		const response = await fetch(`${API_BASE_URL}/api/invoices/${invoiceId}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
@@ -499,7 +499,7 @@ async function confirmDelete() {
 
 	try {
 		const token = localStorage.getItem('adminToken');
-		const response = await fetch(`${API_BASE_URL}/invoices/${currentDeleteId}`, {
+		const response = await fetch(`${API_BASE_URL}/api/invoices/${currentDeleteId}`, {
 			method: 'DELETE',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -910,7 +910,7 @@ async function loadAllInvoicesForFilter() {
 	try {
 		showLoading(true);
 		const token = localStorage.getItem('adminToken');
-		const response = await fetch(`${API_BASE_URL}/invoices`, {
+		const response = await fetch(`${API_BASE_URL}/api/invoices`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
@@ -1536,7 +1536,7 @@ async function loadSuppliers() {
 			return;
 		}
 
-		const response = await fetch(`${API_BASE_URL}/supplierList`, {
+		const response = await fetch(`${API_BASE_URL}/api/supplierList`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
@@ -1656,7 +1656,7 @@ async function handleAddSupplier(e) {
 			return;
 		}
 
-		const response = await fetch(`${API_BASE_URL}/supplierList`, {
+		const response = await fetch(`${API_BASE_URL}/api/supplierList`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -1696,7 +1696,7 @@ async function deleteSupplier(supplierName) {
 			return;
 		}
 
-		const response = await fetch(`${API_BASE_URL}/supplierList/${encodeURIComponent(supplierName)}`, {
+		const response = await fetch(`${API_BASE_URL}/api/supplierList/${encodeURIComponent(supplierName)}`, {
 			method: 'DELETE',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -1765,7 +1765,7 @@ function initModal() {
 
 		try {
 			const token = localStorage.getItem('adminToken');
-			const response = await fetch(`${API_BASE_URL}/invoices/${currentInvoiceId}`, {
+			const response = await fetch(`${API_BASE_URL}/api/invoices/${currentInvoiceId}`, {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',

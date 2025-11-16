@@ -64,7 +64,7 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 		paid: false,
 	};
 
-	fetch(`${API_BASE_URL}/invoices`, {
+	fetch(`${API_BASE_URL}/api/invoices`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ function clearForm() {
 // Load suppliers from backend
 async function loadSuppliers() {
 	try {
-		const response = await fetch(`${API_BASE_URL}/supplierList`);
+		const response = await fetch(`${API_BASE_URL}/api/supplierList`);
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
