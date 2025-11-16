@@ -272,3 +272,66 @@ button[type='button']:hover {
 .toast.error {
 	background-color: #dc3545;
 }
+
+/* Supplier Search Dropdown */
+.supplier-container {
+	position: relative;
+}
+
+.supplier-container input[type="text"] {
+	width: 100%;
+	padding: 12px;
+	border: 1px solid var(--input-border);
+	border-radius: 4px;
+	background-color: var(--input-bg);
+	color: var(--text-color);
+	font-size: 14px;
+	transition: border-color 0.3s;
+}
+
+.supplier-container input[type="text"]:focus {
+	outline: none;
+	border-color: var(--accent-color);
+}
+
+.supplier-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background-color: var(--input-bg);
+	border: 1px solid var(--input-border);
+	border-top: none;
+	border-radius: 0 0 4px 4px;
+	max-height: 200px;
+	overflow-y: auto;
+	z-index: 1000;
+	display: none;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.supplier-dropdown.show {
+	display: block;
+}
+
+.supplier-option {
+	padding: 10px 12px;
+	cursor: pointer;
+	border-bottom: 1px solid var(--input-border);
+	transition: background-color 0.2s;
+}
+
+.supplier-option:hover,
+.supplier-option.highlighted {
+	background-color: var(--accent-color);
+	color: white;
+}
+
+.supplier-option:last-child {
+	border-bottom: none;
+}
+
+.dark .supplier-dropdown {
+	background-color: var(--container-bg);
+	border-color: var(--input-border);
+}

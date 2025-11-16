@@ -15,13 +15,13 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 	submitBtn.textContent = 'Menyimpan...';
 
 	// Basic validation
-	const supplierSearch = document.getElementById('supplierSearch').value.trim();
+	const supplierValue = document.getElementById('supplierSelected').value.trim();
 	const branch = document.querySelector('input[name="branch"]:checked');
 	const date = document.getElementById('date').value;
 	const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
 	const total = document.getElementById('total').value.replace(/\./g, ''); // Remove formatting dots
 
-	if (!supplierSearch || !branch || !date || !invoiceNumber || !total) {
+	if (!supplierValue || !branch || !date || !invoiceNumber || !total) {
 		showToast('Harap isi semua field yang wajib.', 'error');
 		submitBtn.disabled = false;
 		submitBtn.textContent = 'Simpan';
@@ -30,8 +30,8 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 
 	// Validate supplier is in the list
 	const validSuppliers = supplierOptions.map(s => s.name || s);
-	if (!validSuppliers.includes(supplierSearch)) {
-		showToast('Supplier tidak valid. Pilih dari daftar yang muncul saat mengetik.', 'error');
+	if (!validSuppliers.includes(supplierValue)) {
+		showToast('Supplier tidak valid. Pilih dari dropdown yang muncul saat mengetik.', 'error');
 		submitBtn.disabled = false;
 		submitBtn.textContent = 'Simpan';
 		return;
@@ -57,7 +57,7 @@ document.getElementById('invoiceForm').addEventListener('submit', function (even
 
 	// If all good, submit to backend
 	const invoiceData = {
-		supplier: supplierSearch,
+		supplier: supplierValue,
 		branch: branch.value,
 		date: date,
 		invoiceNumber: invoiceNumber,
@@ -159,6 +159,7 @@ function showToast(message, type = 'success') {
 
 function clearForm() {
 	document.getElementById('invoiceForm').reset();
+	document.getElementById('supplierSelected').value = '';
 }
 
 // Load suppliers from backend
@@ -174,9 +175,9 @@ async function loadSuppliers() {
 			
 			// Wait for DOM to be fully loaded
 			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', () => populateDatalist());
+				document.addEventListener('DOMContentLoaded', () => initializeSupplierSearch());
 			} else {
-				populateDatalist();
+				initializeSupplierSearch();
 			}
 		} else {
 			console.error('Failed to load suppliers, status:', response.status);
@@ -186,38 +187,130 @@ async function loadSuppliers() {
 	}
 }
 
-function populateDatalist() {
-	console.log('Populating datalist...');
+function initializeSupplierSearch() {
+	const searchInput = document.getElementById('supplierSearch');
+	const dropdown = document.getElementById('supplierDropdown');
+	const hiddenInput = document.getElementById('supplierSelected');
 	
-	// Populate the datalist with supplier options
-	const datalist = document.getElementById('supplierList');
-	const input = document.getElementById('supplierSearch');
-	
-	if (!datalist) {
-		console.error('CRITICAL ERROR: supplierList datalist element not found!');
-		console.log('Available elements:', document.querySelectorAll('[id]'));
+	if (!searchInput || !dropdown || !hiddenInput) {
+		console.error('Supplier search elements not found!');
 		return;
 	}
 	
-	if (!input) {
-		console.error('CRITICAL ERROR: supplierSearch input element not found!');
-		return;
-	}
+	console.log('Supplier search initialized successfully');
 	
-	console.log('SUCCESS: Found datalist and input elements');
-	console.log('Datalist element:', datalist);
-	console.log('Input element:', input);
+	// Populate dropdown with all suppliers initially
+	populateDropdown('');
 	
-	// Clear existing options
-	datalist.innerHTML = '';
-	supplierOptions.forEach((supplier) => {
-		const option = document.createElement('option');
-		option.value = supplier.name || supplier;
-		datalist.appendChild(option);
+	// Handle input changes
+	searchInput.addEventListener('input', function() {
+		const searchTerm = this.value.toLowerCase().trim();
+		populateDropdown(searchTerm);
+		showDropdown();
 	});
 	
-	console.log('Datalist populated with', supplierOptions.length, 'suppliers');
-	console.log('DATALIST POPULATION COMPLETE');
+	// Handle focus
+	searchInput.addEventListener('focus', function() {
+		populateDropdown(this.value.toLowerCase().trim());
+		showDropdown();
+	});
+	
+	// Handle clicks outside to close dropdown
+	document.addEventListener('click', function(e) {
+		if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+			hideDropdown();
+		}
+	});
+	
+	// Handle keyboard navigation
+	let highlightedIndex = -1;
+	
+	searchInput.addEventListener('keydown', function(e) {
+		const options = dropdown.querySelectorAll('.supplier-option');
+		
+		switch(e.key) {
+			case 'ArrowDown':
+				e.preventDefault();
+				highlightedIndex = Math.min(highlightedIndex + 1, options.length - 1);
+				updateHighlight(options);
+				break;
+			case 'ArrowUp':
+				e.preventDefault();
+				highlightedIndex = Math.max(highlightedIndex - 1, -1);
+				updateHighlight(options);
+				break;
+			case 'Enter':
+				e.preventDefault();
+				if (highlightedIndex >= 0 && options[highlightedIndex]) {
+					selectSupplier(options[highlightedIndex]);
+				}
+				break;
+			case 'Escape':
+				hideDropdown();
+				break;
+		}
+	});
+	
+	function populateDropdown(searchTerm) {
+		dropdown.innerHTML = '';
+		
+		const filteredSuppliers = supplierOptions.filter(supplier => {
+			const name = (supplier.name || supplier).toLowerCase();
+			return name.includes(searchTerm);
+		});
+		
+		if (filteredSuppliers.length === 0) {
+			const noResult = document.createElement('div');
+			noResult.className = 'supplier-option';
+			noResult.textContent = 'Tidak ada supplier ditemukan';
+			noResult.style.color = '#999';
+			noResult.style.cursor = 'default';
+			dropdown.appendChild(noResult);
+			return;
+		}
+		
+		filteredSuppliers.forEach((supplier, index) => {
+			const option = document.createElement('div');
+			option.className = 'supplier-option';
+			option.textContent = supplier.name || supplier;
+			option.dataset.index = index;
+			
+			option.addEventListener('click', function() {
+				selectSupplier(this);
+			});
+			
+			dropdown.appendChild(option);
+		});
+	}
+	
+	function selectSupplier(optionElement) {
+		const supplierName = optionElement.textContent;
+		searchInput.value = supplierName;
+		hiddenInput.value = supplierName;
+		hideDropdown();
+		highlightedIndex = -1;
+		console.log('Supplier selected:', supplierName);
+	}
+	
+	function showDropdown() {
+		dropdown.classList.add('show');
+	}
+	
+	function hideDropdown() {
+		dropdown.classList.remove('show');
+		highlightedIndex = -1;
+	}
+	
+	function updateHighlight(options) {
+		// Remove previous highlight
+		options.forEach(option => option.classList.remove('highlighted'));
+		
+		// Add new highlight
+		if (highlightedIndex >= 0 && options[highlightedIndex]) {
+			options[highlightedIndex].classList.add('highlighted');
+			options[highlightedIndex].scrollIntoView({ block: 'nearest' });
+		}
+	}
 }
 
 // Load suppliers on page load

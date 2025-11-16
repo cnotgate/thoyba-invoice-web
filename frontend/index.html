@@ -27,9 +27,13 @@
         <form id="invoiceForm">
             <div class="form-group">
                 <label for="supplier">Nama Supplier *</label>
-                <input type="text" id="supplierSearch" name="supplier" placeholder="Cari supplier..." autocomplete="off" list="supplierList" required>
-                <datalist id="supplierList">
-                </datalist>
+                <div class="supplier-container">
+                    <input type="text" id="supplierSearch" placeholder="Cari supplier..." autocomplete="off" required>
+                    <div id="supplierDropdown" class="supplier-dropdown">
+                        <!-- Options will be populated here -->
+                    </div>
+                </div>
+                <input type="hidden" id="supplierSelected" name="supplier">
             </div>
 
             <div class="form-group">
