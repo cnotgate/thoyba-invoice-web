@@ -168,14 +168,18 @@ async function loadSuppliers() {
 		if (response.ok) {
 			supplierOptions = await response.json();
 			console.log('Suppliers loaded:', supplierOptions);
+			console.log('Type of supplierOptions:', typeof supplierOptions);
+			console.log('Is array:', Array.isArray(supplierOptions));
 
 			// Populate the datalist with supplier options
 			const datalist = document.getElementById('supplierList');
+			console.log('Datalist element:', datalist);
 			let optionsHTML = '';
 			supplierOptions.forEach((supplier) => {
 				const value = supplier.name || supplier;
 				optionsHTML += `<option value="${value}"></option>`;
 			});
+			console.log('Options HTML:', optionsHTML);
 			datalist.innerHTML = optionsHTML;
 			console.log('Datalist populated with', supplierOptions.length, 'suppliers');
 		} else {
