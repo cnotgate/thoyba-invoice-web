@@ -17,6 +17,12 @@
   ```
   Use this to set up the stats caching system on a new database.
 
+- **`scripts/fix-currency-parsing.ts`** - Fix Indonesian currency format parsing bug
+  ```bash
+  bun run scripts/fix-currency-parsing.ts
+  ```
+  **IMPORTANT**: Run this after initial migration to fix parsing bug where "4.000.000,00" was parsed as 4.0 instead of 4000000.00. This will recalculate all stats with correct values.
+
 ### Monitoring
 
 - **`scripts/show-stats.ts`** - Display current cached statistics

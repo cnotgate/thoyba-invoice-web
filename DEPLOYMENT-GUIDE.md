@@ -371,9 +371,14 @@ The stats caching system requires a one-time migration:
 # Run stats table migration
 sudo docker compose exec backend bun run scripts/run-stats-migration.ts
 
+# Fix Indonesian currency parsing (IMPORTANT!)
+sudo docker compose exec backend bun run scripts/fix-currency-parsing.ts
+
 # Verify stats are working (optional)
 sudo docker compose exec backend bun run scripts/show-stats.ts
 ```
+
+**Important:** The fix-currency-parsing script corrects a bug where Indonesian number format (4.000.000,00) was incorrectly parsed, causing total values to be much lower than actual.
 
 This creates the stats table and triggers that make the dashboard 10-20x faster.
 
@@ -690,22 +695,33 @@ sudo certbot renew
 sudo nginx -t
 ```
 
-### Issue: Stats showing incorrect/outdated values
+### Issue: Stats showing incorrect/outdated values (much lower than expected)
+
+**Root Cause:** Indonesian number format parsing bug (4.000.000,00 parsed as 4.0 instead of 4000000.00)
 
 **Solution:**
+
+```bash
+# Run the currency parsing fix (this will recalculate everything correctly)
+sudo docker compose exec backend bun run scripts/fix-currency-parsing.ts
+
+# Verify updated stats
+sudo docker compose exec backend bun run scripts/show-stats.ts
+```
+
+**If stats still look wrong after fix:**
 
 ```bash
 # Force update stats table to sync with actual invoice data
 sudo docker compose exec backend bun run scripts/force-update-stats.ts
 
-# Verify updated stats
-sudo docker compose exec backend bun run scripts/show-stats.ts
-
-# If stats are still wrong, check invoice data integrity
-sudo docker compose exec postgres psql -U postgres invoice_db -c "SELECT COUNT(*), SUM(CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(15,2))) FROM invoices;"
+# Check invoice data integrity
+sudo docker compose exec postgres psql -U postgres invoice_db -c "SELECT COUNT(*), SUM(parse_indonesian_currency(total)) FROM invoices;"
 ```
 
 **Common causes:**
+
+- Indonesian currency format not parsed correctly (FIXED by migration 0004)
 - Stats table not updated after manual database changes
 - Triggers not fired during bulk imports
 - Database restored from backup without re-running stats migration
