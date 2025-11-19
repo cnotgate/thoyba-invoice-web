@@ -21,4 +21,4 @@ COPY package.json ./
 
 EXPOSE 3001
 
-CMD ["bun", "run", "src/index.ts"]
+CMD ["bun", "run", "scripts/start-with-migration.ts"]
