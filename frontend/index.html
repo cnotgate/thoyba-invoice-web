@@ -1,83 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice CV. Amlaza Baraka</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/icons@3.0.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Invoice CV. Amlaza Baraka</title>
+	<!-- Prevent favicon 404 error -->
+	<link rel="icon"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>" />
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Invoice CV. Amlaza Baraka</h1>
-            <div class="toggle-container">
-                <div id="modeIcon">
-                    <i id="sunIcon" class="cil cil-sun mode-icon"></i>
-                    <i id="moonIcon" class="cil cil-moon mode-icon" style="display: none;"></i>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="darkModeToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        <form id="invoiceForm">
-            <div class="form-group">
-                <label for="supplier">Nama Supplier *</label>
-                <div class="supplier-container">
-                    <input type="text" id="supplierSearch" placeholder="Cari supplier..." autocomplete="off" required>
-                    <div id="supplierDropdown" class="supplier-dropdown">
-                        <!-- Options will be populated here -->
-                    </div>
-                </div>
-                <input type="hidden" id="supplierSelected" name="supplier">
-            </div>
-
-            <div class="form-group">
-                <label>Cabang *</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="branch" value="Kuripan" required> Kuripan</label>
-                    <label><input type="radio" name="branch" value="Cempaka"> Cempaka</label>
-                    <label><input type="radio" name="branch" value="Gatot"> Gatot</label>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="date">Tanggal Nota *</label>
-                <input type="date" id="date" name="date" required>
-            </div>
-
-            <div class="form-group">
-                <label for="invoiceNumber">No. Faktur *</label>
-                <input type="text" id="invoiceNumber" name="invoiceNumber" placeholder="Masukkan nomor faktur" required>
-                <small>Jika nomor faktur menggunakan huruf besar, maka isi dengan huruf besar juga.</small>
-            </div>
-
-            <div class="form-group">
-                <label for="total">Total *</label>
-                <input type="text" id="total" name="total" placeholder="Contoh: 6000000 (angka saja)" required>
-                <small>Masukkan hanya angka saja (tidak ada titik maupun koma).</small>
-            </div>
-
-            <div class="form-group">
-                <label for="description">Keterangan</label>
-                <textarea id="description" name="description" rows="4"
-                    placeholder="Masukkan keterangan jika ada"></textarea>
-            </div>
-
-            <div class="form-actions">
-                <button id="submitBtn" type="submit">Simpan</button>
-                <button type="button" onclick="clearForm()">Bersihkan</button>
-            </div>
-        </form>
-    </div>
-    <div id="toast" class="toast">
-        <span id="toastMessage"></span>
-    </div>
-    <script src="script.js"></script>
+	<div id="root"></div>
+	<script type="module" src="/src/index.tsx"></script>
 </body>
 
 </html>

@@ -1,16 +1,27 @@
 {
-	"name": "invoice-web-backend",
+	"name": "invoice-backend-modern",
 	"version": "1.0.0",
-	"description": "Simple backend for invoice web app",
-	"main": "index.js",
+	"type": "module",
 	"scripts": {
-		"start": "node index.js"
+		"dev": "bun --watch src/index.ts",
+		"build": "bun build ./src/index.ts --target bun --outdir ./dist",
+		"start": "bun run dist/index.js",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "bun run src/db/migrate.ts",
+		"db:seed": "bun run scripts/seed.ts",
+		"db:push": "drizzle-kit push",
+		"db:import": "bun run scripts/import-legacy-invoices.ts"
 	},
 	"dependencies": {
-		"json-server": "^0.17.4",
-		"express": "^4.18.2",
-		"cors": "^2.8.5",
-		"bcrypt": "^5.1.1",
-		"jsonwebtoken": "^9.0.2"
+		"hono": "^4.0.0",
+		"drizzle-orm": "^0.33.0",
+		"postgres": "^3.4.4",
+		"jose": "^5.2.0",
+		"@hono/node-server": "^1.12.0"
+	},
+	"devDependencies": {
+		"bun-types": "latest",
+		"drizzle-kit": "^0.24.0",
+		"@types/node": "^20.0.0"
 	}
 }

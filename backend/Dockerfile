@@ -1,32 +1,24 @@
-# Use Node.js LTS version
-FROM node:18-alpine
+FROM oven/bun:1 AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+COPY package.json bun.lockb* ./
+RUN bun install --frozen-lockfile
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy application code
 COPY . .
+RUN bun run db:generate || true
+RUN bun build ./src/index.ts --target bun --outdir ./dist
 
-# Create directory for database file
-RUN mkdir -p /app/data
+FROM oven/bun:1-slim
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3001
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+WORKDIR /app
 
-# Expose port
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/src ./src
+COPY package.json ./
+
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js
-
-# Start the application
-CMD ["npm", "start"]
+CMD ["bun", "run", "src/index.ts"]

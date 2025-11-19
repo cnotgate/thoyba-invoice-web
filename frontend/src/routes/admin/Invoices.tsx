@@ -1,0 +1,867 @@
+import { createSignal, createEffect, For, Show, onCleanup } from 'solid-js';
+import { api } from '../../services/api';
+import type { Invoice } from '../../types';
+import { BsSearch, BsArrowRepeat, BsTrash, BsXCircle, BsPencil } from 'solid-icons/bs';
+import Toast from '../../components/Toast';
+
+export default function Invoices() {
+    const [allInvoices, setAllInvoices] = createSignal<Invoice[]>([]);
+    const [displayedInvoices, setDisplayedInvoices] = createSignal<Invoice[]>([]);
+    const [loading, setLoading] = createSignal(true);
+    const [loadingMore, setLoadingMore] = createSignal(false);
+    const [searchQuery, setSearchQuery] = createSignal('');
+    const [statusFilter, setStatusFilter] = createSignal<'all' | 'paid' | 'unpaid'>('all');
+    const [sortBy, setSortBy] = createSignal<'timestamp-desc' | 'timestamp-asc' | 'date-desc' | 'date-asc' | 'supplier-asc' | 'supplier-desc' | 'status'>('timestamp-desc');
+    const [currentBatch, setCurrentBatch] = createSignal(1);
+    const [hasMore, setHasMore] = createSignal(true);
+    const [showPaymentModal, setShowPaymentModal] = createSignal(false);
+    const [showDeleteModal, setShowDeleteModal] = createSignal(false);
+    const [showEditModal, setShowEditModal] = createSignal(false);
+    const [selectedInvoice, setSelectedInvoice] = createSignal<Invoice | null>(null);
+    const [paymentDate, setPaymentDate] = createSignal('');
+    const [editForm, setEditForm] = createSignal({
+        supplier: '',
+        branch: 'Kuripan' as 'Kuripan' | 'Cempaka' | 'Gatot',
+        date: '',
+        invoiceNumber: '',
+        total: '',
+        description: ''
+    }); const BATCH_SIZE = 50;
+
+    // Toast
+    const [showToast, setShowToast] = createSignal(false);
+    const [toastMessage, setToastMessage] = createSignal('');
+    const [toastType, setToastType] = createSignal<'success' | 'error' | 'info'>('success');
+
+    function triggerToast(message: string, type: 'success' | 'error' | 'info' = 'success') {
+        setToastMessage(message);
+        setToastType(type);
+        setShowToast(true);
+    }
+
+    // Load initial invoices
+    createEffect(async () => {
+        try {
+            setLoading(true);
+            const invoices = await api.getInvoices();
+            setAllInvoices(invoices);
+            loadMoreInvoices(true);
+        } catch (error) {
+            console.error('Error loading invoices:', error);
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    // Filter and sort invoices
+    const filteredInvoices = () => {
+        let filtered = [...allInvoices()];
+
+        // Apply search filter
+        const query = searchQuery().toLowerCase();
+        if (query) {
+            filtered = filtered.filter(inv =>
+                inv.supplier.toLowerCase().includes(query) ||
+                inv.invoiceNumber.toLowerCase().includes(query)
+            );
+        }
+
+        // Apply status filter
+        const status = statusFilter();
+        if (status !== 'all') {
+            filtered = filtered.filter(inv =>
+                status === 'paid' ? inv.paid : !inv.paid
+            );
+        }
+
+        // Apply sorting
+        const sort = sortBy();
+        filtered.sort((a, b) => {
+            switch (sort) {
+                case 'timestamp-desc':
+                    return parseTimestamp(b.timestamp || '') - parseTimestamp(a.timestamp || '');
+                case 'timestamp-asc':
+                    return parseTimestamp(a.timestamp || '') - parseTimestamp(b.timestamp || '');
+                case 'date-desc':
+                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                case 'date-asc':
+                    return new Date(a.date).getTime() - new Date(b.date).getTime();
+                case 'supplier-asc':
+                    return a.supplier.localeCompare(b.supplier);
+                case 'supplier-desc':
+                    return b.supplier.localeCompare(a.supplier);
+                case 'status':
+                    return (a.paid === b.paid) ? 0 : a.paid ? -1 : 1;
+                default:
+                    return 0;
+            }
+        });
+
+        return filtered;
+    };
+
+    // Parse timestamp DD/MM/YYYY HH:mm:ss
+    function parseTimestamp(timestampStr: string): number {
+        if (!timestampStr) return 0;
+        const parts = timestampStr.split(' ');
+        if (parts.length !== 2) return new Date(timestampStr).getTime();
+
+        const [datePart, timePart] = parts;
+        const [day, month, year] = datePart.split('/').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+
+        return new Date(year, month - 1, day, hours, minutes, seconds).getTime();
+    }
+
+    // Load more invoices (lazy loading)
+    function loadMoreInvoices(reset = false) {
+        const filtered = filteredInvoices();
+        const batch = reset ? 1 : currentBatch();
+        const startIndex = (batch - 1) * BATCH_SIZE;
+        const endIndex = startIndex + BATCH_SIZE;
+
+        if (reset) {
+            setDisplayedInvoices(filtered.slice(0, BATCH_SIZE));
+            setCurrentBatch(1);
+        } else {
+            setDisplayedInvoices([...displayedInvoices(), ...filtered.slice(startIndex, endIndex)]);
+        }
+
+        setHasMore(endIndex < filtered.length);
+        setLoadingMore(false);
+    }
+
+    // Handle scroll to load more
+    const handleScroll = () => {
+        const scrollContainer = document.querySelector('.invoice-container');
+        if (!scrollContainer) return;
+
+        const scrollTop = scrollContainer.scrollTop;
+        const scrollHeight = scrollContainer.scrollHeight;
+        const clientHeight = scrollContainer.clientHeight;
+
+        // Load more when 200px from bottom
+        if (scrollHeight - scrollTop - clientHeight < 200 && hasMore() && !loadingMore()) {
+            setLoadingMore(true);
+            setCurrentBatch(currentBatch() + 1);
+            setTimeout(() => loadMoreInvoices(), 100);
+        }
+    };
+
+    // Attach scroll listener
+    createEffect(() => {
+        const scrollContainer = document.querySelector('.invoice-container');
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', handleScroll);
+            onCleanup(() => scrollContainer.removeEventListener('scroll', handleScroll));
+        }
+    });
+
+    // Reset when filters change
+    createEffect(() => {
+        searchQuery();
+        statusFilter();
+        sortBy();
+        loadMoreInvoices(true);
+    });
+
+    // Refresh data
+    async function handleRefresh() {
+        setLoading(true);
+        try {
+            const invoices = await api.getInvoices();
+            setAllInvoices(invoices);
+            loadMoreInvoices(true);
+        } catch (error) {
+            console.error('Error refreshing invoices:', error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // Toggle paid status
+    function handleTogglePaid(invoice: Invoice) {
+        setSelectedInvoice(invoice);
+        if (invoice.paid) {
+            // Unpay invoice
+            updateInvoiceStatus(invoice.id, false, '');
+        } else {
+            // Show payment date modal
+            setPaymentDate(new Date().toISOString().split('T')[0]);
+            setShowPaymentModal(true);
+        }
+    }
+
+    // Submit payment date
+    async function handlePaymentSubmit(e: Event) {
+        e.preventDefault();
+        const invoice = selectedInvoice();
+        if (!invoice) return;
+
+        await updateInvoiceStatus(invoice.id, true, paymentDate());
+        setShowPaymentModal(false);
+        setSelectedInvoice(null);
+    }
+
+    // Update invoice status
+    async function updateInvoiceStatus(id: number, paid: boolean, paidDate: string) {
+        try {
+            await api.updateInvoice(id, { paid, paidDate: paid ? paidDate : undefined });
+
+            // Update local state
+            setAllInvoices(allInvoices().map(inv =>
+                inv.id === id ? { ...inv, paid, paidDate: paid ? paidDate : undefined } : inv
+            ));
+            loadMoreInvoices(true);
+
+            // Show toast
+            triggerToast(paid ? 'Invoice ditandai Lunas' : 'Invoice ditandai Belum Lunas', 'success');
+        } catch (error) {
+            console.error('Error updating invoice:', error);
+            triggerToast('Gagal mengubah status pembayaran', 'error');
+        }
+    }
+
+    // Delete invoice
+    function handleDeleteClick(invoice: Invoice) {
+        setSelectedInvoice(invoice);
+        setShowDeleteModal(true);
+    }
+
+    async function handleDeleteConfirm() {
+        const invoice = selectedInvoice();
+        if (!invoice) return;
+
+        try {
+            await api.deleteInvoice(invoice.id);
+
+            // Update local state
+            setAllInvoices(allInvoices().filter(inv => inv.id !== invoice.id));
+            loadMoreInvoices(true);
+
+            setShowDeleteModal(false);
+            setSelectedInvoice(null);
+        } catch (error) {
+            console.error('Error deleting invoice:', error);
+            alert('Gagal menghapus invoice');
+        }
+    }
+
+    // Edit invoice
+    function handleEditClick(invoice: Invoice) {
+        setSelectedInvoice(invoice);
+        setEditForm({
+            supplier: invoice.supplier,
+            branch: invoice.branch,
+            date: invoice.date,
+            invoiceNumber: invoice.invoiceNumber,
+            total: invoice.total.replace(/[^0-9.-]/g, ''),
+            description: invoice.description || ''
+        });
+        setShowEditModal(true);
+    }
+
+    async function handleEditSubmit(e: Event) {
+        e.preventDefault();
+        const invoice = selectedInvoice();
+        if (!invoice) return;
+
+        const form = editForm();
+        try {
+            await api.updateInvoice(invoice.id, {
+                supplier: form.supplier,
+                branch: form.branch,
+                date: form.date,
+                invoiceNumber: form.invoiceNumber,
+                total: form.total,
+                description: form.description
+            });
+
+            // Update local state
+            setAllInvoices(allInvoices().map(inv =>
+                inv.id === invoice.id ? { ...inv, ...form } : inv
+            ));
+            loadMoreInvoices(true);
+
+            setShowEditModal(false);
+            setSelectedInvoice(null);
+        } catch (error) {
+            console.error('Error updating invoice:', error);
+            alert('Gagal mengupdate invoice');
+        }
+    }
+
+    // Format currency
+    function formatCurrency(value: string): string {
+        const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(num);
+    }
+
+    // Format date
+    function formatDate(dateStr: string): string {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    }
+
+    return (
+        <div>
+            {/* Header */}
+            <div class="mb-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                    Daftar Invoice
+                </h1>
+            </div>
+
+            {/* Filters */}
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-2 md:p-4 mb-3 md:mb-6">
+                {/* Search bar - full width on mobile, inline on desktop */}
+                <div class="mb-2 lg:mb-0 lg:flex lg:gap-2 lg:items-center">
+                    <div class="relative lg:flex-1">
+                        <BsSearch class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Cari supplier atau no. invoice..."
+                            class="w-full pl-8 pr-3 py-1.5 md:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={searchQuery()}
+                            onInput={(e) => setSearchQuery(e.currentTarget.value)}
+                        />
+                    </div>
+
+                    {/* Desktop: All filters inline with search */}
+                    <div class="hidden lg:flex lg:gap-2">
+                        {/* Status Filter */}
+                        <select
+                            class="w-40 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={statusFilter()}
+                            onChange={(e) => setStatusFilter(e.currentTarget.value as any)}
+                        >
+                            <option value="all">Semua Status</option>
+                            <option value="paid">Sudah Dibayar</option>
+                            <option value="unpaid">Belum Dibayar</option>
+                        </select>
+
+                        {/* Sort */}
+                        <select
+                            class="w-52 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={sortBy()}
+                            onChange={(e) => setSortBy(e.currentTarget.value as any)}
+                        >
+                            <option value="timestamp-desc">Terbaru</option>
+                            <option value="timestamp-asc">Terlama</option>
+                            <option value="date-desc">Tgl Faktur Terbaru</option>
+                            <option value="date-asc">Tgl Faktur Terlama</option>
+                            <option value="supplier-asc">Supplier A-Z</option>
+                            <option value="supplier-desc">Supplier Z-A</option>
+                            <option value="status">Status</option>
+                        </select>
+
+                        {/* Refresh Button */}
+                        <button
+                            onClick={handleRefresh}
+                            disabled={loading()}
+                            class="flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors whitespace-nowrap"
+                        >
+                            <BsArrowRepeat class={`w-4 h-4 ${loading() ? 'animate-spin' : ''}`} />
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile & Tablet: Filters in separate row */}
+                <div class="flex gap-2 lg:hidden">
+                    {/* Status Filter - compact */}
+                    <div class="flex-1">
+                        <select
+                            class="w-full px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={statusFilter()}
+                            onChange={(e) => setStatusFilter(e.currentTarget.value as any)}
+                        >
+                            <option value="all">Semua</option>
+                            <option value="paid">Lunas</option>
+                            <option value="unpaid">Belum</option>
+                        </select>
+                    </div>
+
+                    {/* Sort - compact */}
+                    <div class="flex-1">
+                        <select
+                            class="w-full px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={sortBy()}
+                            onChange={(e) => setSortBy(e.currentTarget.value as any)}
+                        >
+                            <option value="timestamp-desc">Terbaru</option>
+                            <option value="timestamp-asc">Terlama</option>
+                            <option value="date-desc">Tgl Faktur ↓</option>
+                            <option value="date-asc">Tgl Faktur ↑</option>
+                            <option value="supplier-asc">A-Z</option>
+                            <option value="supplier-desc">Z-A</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+
+                    {/* Refresh Button - icon only */}
+                    <button
+                        onClick={handleRefresh}
+                        disabled={loading()}
+                        class="flex items-center justify-center gap-1.5 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                    >
+                        <BsArrowRepeat class={`w-4 h-4 ${loading() ? 'animate-spin' : ''}`} />
+                        <span class="hidden md:inline">Refresh</span>
+                    </button>
+                </div>
+            </div>            {/* Invoice List */}
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+                <Show when={!loading()} fallback={
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p class="mt-4 text-gray-600 dark:text-gray-400">Memuat invoice...</p>
+                    </div>
+                }>
+                    <Show when={displayedInvoices().length > 0} fallback={
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <BsXCircle class="w-16 h-16 text-gray-400 mb-4" />
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Tidak ada invoice
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                {searchQuery() || statusFilter() !== 'all'
+                                    ? 'Tidak ada invoice yang sesuai dengan filter'
+                                    : 'Belum ada invoice yang dibuat'}
+                            </p>
+                        </div>
+                    }>
+                        <div class="invoice-container overflow-auto" style="height: calc(100vh - 280px); min-height: 400px;">
+                            {/* Desktop Table */}
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Tanggal
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Supplier
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                No. Invoice
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Cabang
+                                            </th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Total
+                                            </th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Aksi
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                        <For each={displayedInvoices()}>
+                                            {(invoice) => (
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                        {formatDate(invoice.date)}
+                                                    </td>
+                                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                        {invoice.supplier}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                                                        {invoice.invoiceNumber}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                        {invoice.branch}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-white">
+                                                        {formatCurrency(invoice.total)}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div class="flex items-center justify-center gap-1.5">
+                                                            <span class={`text-xs font-medium ${invoice.paid
+                                                                ? 'text-green-600 dark:text-green-400'
+                                                                : 'text-red-600 dark:text-red-400'
+                                                                }`}>
+                                                                {invoice.paid ? 'Lunas' : 'Belum Lunas'}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => handleTogglePaid(invoice)}
+                                                                class={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${invoice.paid
+                                                                    ? 'bg-green-500 focus:ring-green-500'
+                                                                    : 'bg-red-500 focus:ring-red-500'
+                                                                    }`}
+                                                                role="switch"
+                                                                aria-checked={invoice.paid}
+                                                            >
+                                                                <span
+                                                                    class={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.paid ? 'translate-x-5' : 'translate-x-0.5'
+                                                                        }`}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div class="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => handleEditClick(invoice)}
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-lg text-xs font-semibold transition-colors"
+                                                            >
+                                                                <BsPencil class="w-3 h-3" />
+                                                                <span>Edit</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteClick(invoice)}
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-lg text-xs font-semibold transition-colors"
+                                                            >
+                                                                <BsTrash class="w-3 h-3" />
+                                                                <span>Hapus</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </For>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Cards */}
+                            <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                                <For each={displayedInvoices()}>
+                                    {(invoice) => (
+                                        <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                            <div class="flex justify-between items-start gap-2 mb-3">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-semibold text-gray-900 dark:text-white truncate">
+                                                        {invoice.supplier}
+                                                    </p>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400 font-mono">
+                                                        {invoice.invoiceNumber}
+                                                    </p>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                                    <span class={`text-xs font-medium ${invoice.paid
+                                                        ? 'text-green-600 dark:text-green-400'
+                                                        : 'text-red-600 dark:text-red-400'
+                                                        }`}>
+                                                        {invoice.paid ? 'Lunas' : 'Belum'}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleTogglePaid(invoice)}
+                                                        class={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${invoice.paid
+                                                            ? 'bg-green-500 focus:ring-green-500'
+                                                            : 'bg-red-500 focus:ring-red-500'
+                                                            }`}
+                                                        role="switch"
+                                                        aria-checked={invoice.paid}
+                                                    >
+                                                        <span
+                                                            class={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.paid ? 'translate-x-5' : 'translate-x-0.5'
+                                                                }`}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1 mb-3">
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                    <span class="font-medium">Tanggal:</span> {formatDate(invoice.date)}
+                                                </p>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                    <span class="font-medium">Cabang:</span> {invoice.branch}
+                                                </p>
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                                                    {formatCurrency(invoice.total)}
+                                                </p>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button
+                                                    onClick={() => handleEditClick(invoice)}
+                                                    class="flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-lg text-sm font-semibold transition-colors"
+                                                >
+                                                    <BsPencil class="w-4 h-4" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(invoice)}
+                                                    class="flex items-center justify-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-lg text-sm font-semibold transition-colors"
+                                                >
+                                                    <BsTrash class="w-4 h-4" />
+                                                    <span>Hapus</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </For>
+                            </div>
+
+                            {/* Loading More Indicator */}
+                            <Show when={loadingMore()}>
+                                <div class="flex justify-center items-center py-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                    <span class="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                                        Memuat lebih banyak...
+                                    </span>
+                                </div>
+                            </Show>
+
+                            {/* End of List */}
+                            <Show when={!hasMore() && displayedInvoices().length > 0}>
+                                <div class="py-4 text-center border-t border-gray-200 dark:border-gray-700">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Semua invoice telah ditampilkan ({displayedInvoices().length} invoice)
+                                    </p>
+                                </div>
+                            </Show>
+                        </div>
+                    </Show>
+                </Show>
+            </div>
+
+            {/* Payment Date Modal */}
+            <Show when={showPaymentModal()}>
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Masukkan Tanggal Pembayaran
+                            </h3>
+                            <form onSubmit={handlePaymentSubmit}>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Tanggal Pembayaran
+                                    </label>
+                                    <input
+                                        type="date"
+                                        required
+                                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        value={paymentDate()}
+                                        onInput={(e) => setPaymentDate(e.currentTarget.value)}
+                                    />
+                                </div>
+                                <div class="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPaymentModal(false)}
+                                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                    >
+                                        Simpan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Edit Invoice Modal */}
+            <Show when={showEditModal()}>
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full my-8">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                    Edit Invoice
+                                </h3>
+                                <button
+                                    onClick={() => setShowEditModal(false)}
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                >
+                                    <BsXCircle class="w-6 h-6" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleEditSubmit} class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Supplier */}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Supplier *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            value={editForm().supplier}
+                                            onInput={(e) => setEditForm({ ...editForm(), supplier: e.currentTarget.value })}
+                                        />
+                                    </div>
+
+                                    {/* Branch */}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Cabang *
+                                        </label>
+                                        <select
+                                            required
+                                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            value={editForm().branch}
+                                            onChange={(e) => setEditForm({ ...editForm(), branch: e.currentTarget.value as any })}
+                                        >
+                                            <option value="Kuripan">Kuripan</option>
+                                            <option value="Cempaka">Cempaka</option>
+                                            <option value="Gatot">Gatot</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Date */}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Tanggal *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            required
+                                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            value={editForm().date}
+                                            onInput={(e) => setEditForm({ ...editForm(), date: e.currentTarget.value })}
+                                        />
+                                    </div>
+
+                                    {/* Invoice Number */}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            No. Invoice *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            value={editForm().invoiceNumber}
+                                            onInput={(e) => setEditForm({ ...editForm(), invoiceNumber: e.currentTarget.value })}
+                                        />
+                                    </div>
+
+                                    {/* Total */}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Total (Rp) *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            required
+                                            step="0.01"
+                                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            value={editForm().total}
+                                            onInput={(e) => setEditForm({ ...editForm(), total: e.currentTarget.value })}
+                                        />
+                                    </div>
+
+                                    {/* Description */}
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Deskripsi
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            value={editForm().description}
+                                            onInput={(e) => setEditForm({ ...editForm(), description: e.currentTarget.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditModal(false)}
+                                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                    >
+                                        Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Delete Confirmation Modal */}
+            <Show when={showDeleteModal()}>
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Konfirmasi Hapus Invoice
+                            </h3>
+                            <div class="mb-6">
+                                <div class="flex items-center justify-center mb-4">
+                                    <BsTrash class="w-12 h-12 text-red-600" />
+                                </div>
+                                <p class="text-gray-700 dark:text-gray-300 mb-3">
+                                    Apakah Anda yakin ingin menghapus invoice ini?
+                                </p>
+                                <Show when={selectedInvoice()}>
+                                    {(invoice) => (
+                                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">Supplier:</span>
+                                                <span class="ml-2 text-gray-900 dark:text-white">{invoice().supplier}</span>
+                                            </p>
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">No. Invoice:</span>
+                                                <span class="ml-2 text-gray-900 dark:text-white font-mono">{invoice().invoiceNumber}</span>
+                                            </p>
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">Total:</span>
+                                                <span class="ml-2 text-gray-900 dark:text-white font-semibold">{formatCurrency(invoice().total)}</span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </Show>
+                                <p class="text-sm text-red-600 dark:text-red-400 mt-4">
+                                    <strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan!
+                                </p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteModal(false)}
+                                    class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteConfirm}
+                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                >
+                                    Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+            {/* Toast Notifications */}
+            <Show when={showToast()}>
+                <Toast
+                    message={toastMessage()}
+                    type={toastType()}
+                    onClose={() => setShowToast(false)}
+                />
+            </Show>
+
+        </div>
+    );
+}
