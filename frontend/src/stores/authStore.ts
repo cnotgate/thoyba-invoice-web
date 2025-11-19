@@ -26,6 +26,47 @@ const [authState, setAuthState] = createStore<AuthState>({
 	isAuthenticated: !!localStorage.getItem('token'),
 });
 
+// Auto-fix: If token exists but user data is missing, fetch user data
+const initializeAuth = async () => {
+	const token = localStorage.getItem('token');
+	const userData = localStorage.getItem('user');
+	
+	if (token && !userData) {
+		console.log('Token found but user data missing, fetching from API...');
+		try {
+			const response = await fetch('/api/users', {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			});
+			
+			if (response.ok) {
+				const users = await response.json();
+				// Get current user from token (decode token or fetch from /api/auth/me if available)
+				// For now, we'll need to get username from token payload
+				const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+				const currentUser = users.find((u: any) => u.username === tokenPayload.username);
+				
+				if (currentUser) {
+					const userToSave = {
+						id: currentUser.id,
+						username: currentUser.username,
+						role: currentUser.role
+					};
+					localStorage.setItem('user', JSON.stringify(userToSave));
+					setAuthState({ user: userToSave });
+					console.log('User data restored:', userToSave);
+				}
+			}
+		} catch (error) {
+			console.error('Failed to restore user data:', error);
+		}
+	}
+};
+
+// Initialize auth on module load
+initializeAuth();
+
 export const useAuth = () => {
 	const login = async (username: string, password: string) => {
 		const response = await fetch('/api/auth/login', {
