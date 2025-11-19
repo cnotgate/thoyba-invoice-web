@@ -139,11 +139,26 @@ Generated: ${new Date().toISOString()}
 		}
 		console.log(`✅ Inserted ${insertedCount} suppliers, skipped ${skippedCount} duplicates`);
 
-		// Import legacy invoices
-		console.log('\n📦 Importing legacy invoices...');
+		// Import legacy invoices (if available)
+		console.log('\n📦 Checking for legacy invoices...');
 		try {
 			const legacyDbPath = join(process.cwd(), '..', 'legacy', 'backend', 'db.json');
-			const legacyData = JSON.parse(readFileSync(legacyDbPath, 'utf-8'));
+			
+			// Check if legacy file exists
+			let legacyData;
+			try {
+				legacyData = JSON.parse(readFileSync(legacyDbPath, 'utf-8'));
+			} catch (fileError: any) {
+				if (fileError.code === 'ENOENT') {
+					console.log('ℹ️  Legacy database not found (this is normal in production)');
+					console.log('💡 To import legacy data, you can:');
+					console.log('   1. Copy legacy db.json to the server');
+					console.log('   2. Run the import-legacy-invoices.ts script');
+					console.log('   3. Or manually import via admin panel');
+					throw fileError; // Exit this try block gracefully
+				}
+				throw fileError; // Re-throw other errors
+			}
 			
 			if (legacyData.invoices && Array.isArray(legacyData.invoices)) {
 				const legacyInvoices = legacyData.invoices;

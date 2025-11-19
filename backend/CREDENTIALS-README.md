@@ -47,6 +47,14 @@ sudo docker compose exec postgres psql -U postgres invoice_db
 UPDATE users SET password = 'new_hashed_password' WHERE username = 'admin';
 ```
 
+## Importing Legacy Data
+
+If you want to import historical invoice data from the legacy system, see:
+
+📄 **[LEGACY-IMPORT-GUIDE.md](LEGACY-IMPORT-GUIDE.md)**
+
+The legacy folder is excluded from version control, so you'll need to manually copy and import data in production.
+
 ## Troubleshooting
 
 ### Lost Admin Password
