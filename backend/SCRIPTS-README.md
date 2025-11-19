@@ -3,12 +3,14 @@
 ## Utility Scripts
 
 ### Development
+
 - **`start-dev.bat`** - Start backend development server with watch mode
   ```bash
   start-dev.bat
   ```
 
 ### Database
+
 - **`run-stats-migration.ts`** - Run stats table migration and triggers
   ```bash
   bun run run-stats-migration.ts
@@ -16,10 +18,13 @@
   Use this to set up the stats caching system on a new database.
 
 ### Monitoring
+
 - **`show-stats.ts`** - Display current cached statistics
+
   ```bash
   bun run show-stats.ts
   ```
+
   Useful for verifying stats table data and troubleshooting.
 
 - **`test-connection.ts`** - Test database connection
@@ -31,6 +36,7 @@
 ## Scripts Folder
 
 Additional scripts are located in the `scripts/` folder:
+
 - `seed.ts` - Seed database with sample data
 - `import-legacy-invoices.ts` - Import invoices from legacy system
 - `start-with-migration.ts` - Start server with automatic migration
@@ -40,6 +46,7 @@ See individual script files for usage details.
 ## Removed Scripts
 
 The following scripts were temporary and have been removed:
+
 - `check-duplicates.ts` - Used for one-time duplicate detection
 - `clean-duplicates.ts` - Used for one-time duplicate cleanup
 - `clean-duplicates-by-number.ts` - Used for one-time cleanup by invoice number

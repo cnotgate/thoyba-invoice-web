@@ -173,39 +173,40 @@ const Sidebar: Component<SidebarProps> = (props) => {
                     </button>
                 </div>
 
-                {/* Logout Confirmation Modal */}
-                <Show when={showLogoutConfirm()}>
-                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                                    <BsExclamationTriangle class="text-yellow-600 dark:text-yellow-500" size={24} />
-                                </div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Konfirmasi Keluar
-                                </h3>
+            </aside>
+
+            {/* Logout Confirmation Modal - Outside sidebar for full screen overlay */}
+            <Show when={showLogoutConfirm()}>
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                                <BsExclamationTriangle class="text-yellow-600 dark:text-yellow-500" size={24} />
                             </div>
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                Apakah Anda yakin ingin keluar dari aplikasi?
-                            </p>
-                            <div class="flex gap-3 justify-end">
-                                <button
-                                    onClick={() => setShowLogoutConfirm(false)}
-                                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={handleLogoutConfirm}
-                                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                                >
-                                    Ya, Keluar
-                                </button>
-                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                Konfirmasi Keluar
+                            </h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">
+                            Apakah Anda yakin ingin keluar dari aplikasi?
+                        </p>
+                        <div class="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShowLogoutConfirm(false)}
+                                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleLogoutConfirm}
+                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                            >
+                                Ya, Keluar
+                            </button>
                         </div>
                     </div>
-                </Show>
-            </aside>
+                </div>
+            </Show>
         </>
     );
 };
