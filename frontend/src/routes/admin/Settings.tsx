@@ -159,7 +159,13 @@ export default function Settings() {
 						<span class="text-sm font-medium text-gray-600 dark:text-gray-400 w-32">
 							Role:
 						</span>
-						<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 w-fit">
+						<span 
+							class={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium w-fit ${
+								role() === 'admin' 
+									? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' 
+									: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+							}`}
+						>
 							<BsShieldCheck class="w-4 h-4" />
 							{role() === 'admin' ? 'Administrator' : 'User'}
 						</span>
