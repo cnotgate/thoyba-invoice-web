@@ -63,21 +63,19 @@ server {
     listen 80;
     server_name your-domain.com;
 
-    # Frontend
+    # Proxy all requests to Docker nginx container
+    # The container handles frontend + API routing internally
     location / {
         proxy_pass http://localhost:8600;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # Backend API
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```
+
+**Note:** Port 8600 is the nginx container that routes traffic to frontend (port 3000) and backend (port 3001) internally.
 
 ```bash
 # Enable site

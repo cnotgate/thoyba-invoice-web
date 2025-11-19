@@ -184,22 +184,10 @@ server {
     # Redirect all HTTP to HTTPS (after SSL is set up)
     # return 301 https://$server_name$request_uri;
 
-    # Frontend - Serve static files
+    # Proxy everything to Docker nginx container (port 8600)
+    # The nginx container handles routing to frontend and backend internally
     location / {
         proxy_pass http://localhost:8600;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Backend API - Proxy to backend
-    location /api {
-        proxy_pass http://localhost:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -220,6 +208,14 @@ server {
     access_log /var/log/nginx/invoice-app-access.log;
     error_log /var/log/nginx/invoice-app-error.log;
 }
+```
+
+**Note:** The nginx container (port 8600) internally handles:
+- Frontend serving (SolidJS SPA)
+- API routing to backend (`/api` → backend:3001)
+- Health checks (`/health` → backend:3001)
+
+You only need to expose and proxy to port **8600**. Ports 3000 (frontend) and 3001 (backend) remain internal to the Docker network.
 ```
 
 ### Step 2: Enable the Site

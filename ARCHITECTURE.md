@@ -2,26 +2,37 @@
 
 ## High-Level Overview
 
+### Production Deployment Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    User's Browser                            │
-│                  http://localhost:8600                       │
+│              https://your-domain.com                         │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  Nginx Reverse Proxy                         │
-│                      Port 80                                 │
-│  Routes:                                                     │
-│    / → Frontend (SPA)                                       │
-│    /api/* → Backend API                                     │
+│               Host Server Nginx (SSL)                        │
+│                   Port 80/443                                │
+│  - SSL Termination (Certbot/Let's Encrypt)                  │
+│  - Reverse proxy to Docker nginx                            │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼ proxy_pass http://localhost:8600
+┌─────────────────────────────────────────────────────────────┐
+│              Docker Nginx Container                          │
+│                   Port 8600 → 80                             │
+│  Internal Routing:                                           │
+│    / → Frontend Container (port 3000)                       │
+│    /api/* → Backend Container (port 3001)                   │
+│    /health → Backend Container (port 3001)                  │
 └─────────┬─────────────────────────┬──────────────────────────┘
           │                         │
           ▼                         ▼
 ┌──────────────────────┐  ┌──────────────────────────────────┐
 │  Frontend Container  │  │     Backend Container            │
 │    SolidJS + Vite    │  │      Bun + Hono                 │
-│      Port 80         │  │      Port 3001                   │
+│  Port 3000 (internal)│  │  Port 3001 (internal)            │
 │                      │  │                                  │
 │  - Home page         │  │  API Endpoints:                  │
 │  - Login page        │  │  - POST /api/auth/login          │
@@ -33,7 +44,7 @@
                                      ▼
                           ┌────────────────────────┐
                           │  PostgreSQL Container  │
-                          │      Port 5432         │
+                          │  Port 5432 (internal)  │
                           │                        │
                           │  Tables:               │
                           │  - users               │
@@ -44,6 +55,12 @@
                           │  postgres_data         │
                           └────────────────────────┘
 ```
+
+**Key Points:**
+- Only **port 8600** is exposed to the host
+- Ports 3000, 3001, and 5432 are **internal** to Docker network
+- Host nginx only needs to proxy to **port 8600**
+- Docker nginx container handles all internal routing
 
 ## Container Details
 

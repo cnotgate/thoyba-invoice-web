@@ -68,14 +68,21 @@ invoice-web/
 └── docker compose.yml
 ```
 
-## 🔐 Default Credentials
+## 🔐 Admin Credentials
 
-After deployment, login with:
+On first startup, an admin user is automatically created with a **secure auto-generated password**.
 
-- **Admin**: `admin` / `admin123`
-- **User**: `user` / `user123`
+**To get your admin credentials:**
 
-> ⚠️ Change these credentials in production!
+```bash
+# Docker deployment
+docker compose exec backend cat ADMIN_CREDENTIALS.txt
+
+# Or copy to host
+docker compose cp backend:/app/ADMIN_CREDENTIALS.txt ./
+```
+
+> ⚠️ **Important:** Save the password immediately and delete the credentials file after first login!
 
 ## 📊 Performance
 
@@ -137,7 +144,47 @@ bun run db:migrate
 bun run db:seed
 ```
 
-## 🆘 Troubleshooting
+## � Port Architecture
+
+The application uses a layered port architecture:
+
+```
+External (Server Host)
+    ↓
+  Port 80/443 (Host Nginx) → Reverse proxy with SSL
+    ↓
+  Port 8600 (Docker Nginx) → Internal routing container
+    ↓
+    ├─→ Port 3000 (Frontend Container) → SolidJS app
+    └─→ Port 3001 (Backend Container) → Hono API
+         ↓
+       Port 5432 (Postgres Container) → Database
+```
+
+**Important for Production:**
+- Only expose port **8600** on your server
+- Host nginx should **only proxy to port 8600**
+- The nginx container (8600) handles all internal routing:
+  - Serves frontend (SolidJS SPA)
+  - Proxies `/api/*` to backend:3001
+  - Proxies `/health` to backend:3001
+- Ports 3000, 3001, and 5432 remain **internal to Docker network**
+
+**Example host nginx configuration:**
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://localhost:8600;  # Only this!
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+## �🆘 Troubleshooting
 
 ### Port Already in Use
 
