@@ -138,10 +138,10 @@ export default function Suppliers() {
 				</div>
 				<button
 					onClick={() => setShowAddModal(true)}
-					class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+					class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm hover:shadow-md w-full sm:w-auto"
 				>
-					<BsPlus class="w-5 h-5" />
-					Tambah Supplier
+					<BsPlus class="w-5 h-5 flex-shrink-0" />
+					<span>Tambah Supplier</span>
 				</button>
 			</div>
 
