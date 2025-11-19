@@ -19,34 +19,39 @@ function generatePassword(length: number = 16): string {
 }
 
 // Convert legacy date format to ISO format
-function convertLegacyDate(legacyDate: string): string | null {
-	if (!legacyDate) return null;
-	
-	// If already ISO format (YYYY-MM-DD), return as-is
-	if (/^\d{4}-\d{2}-\d{2}$/.test(legacyDate)) {
-		return legacyDate;
+function convertLegacyDate(legacyDate: string): string {
+	if (!legacyDate || legacyDate.trim() === '') {
+		return new Date().toISOString().split('T')[0];
 	}
 	
-	// Indonesian month names mapping
+	const cleaned = legacyDate.trim();
+	
+	// If already ISO format (YYYY-MM-DD), return as-is
+	if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
+		return cleaned;
+	}
+	
+	// Indonesian month names mapping (case-insensitive)
 	const monthMap: Record<string, string> = {
-		'Januari': '01', 'Februari': '02', 'Maret': '03', 'April': '04',
-		'Mei': '05', 'Juni': '06', 'Juli': '07', 'Agustus': '08',
-		'September': '09', 'Oktober': '10', 'November': '11', 'Desember': '12'
+		'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
+		'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08',
+		'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'
 	};
 	
-	// Try parsing "DD Month YYYY" format (e.g., "17 Januari 2024")
-	const match = legacyDate.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+	// Try parsing "DD Month YYYY" or "D Month YYYY" format (e.g., "17 Januari 2024" or "7 Mei 2025")
+	const match = cleaned.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/i);
 	if (match) {
 		const day = match[1].padStart(2, '0');
-		const month = monthMap[match[2]];
+		const monthName = match[2].toLowerCase();
+		const month = monthMap[monthName];
 		const year = match[3];
 		if (month) {
 			return `${year}-${month}-${day}`;
 		}
 	}
 	
-	// Try parsing "DD/MM/YYYY" format
-	const ddmmyyyy = legacyDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+	// Try parsing "DD/MM/YYYY" format (e.g., "04/10/2025")
+	const ddmmyyyy = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
 	if (ddmmyyyy) {
 		const day = ddmmyyyy[1].padStart(2, '0');
 		const month = ddmmyyyy[2].padStart(2, '0');
@@ -54,7 +59,25 @@ function convertLegacyDate(legacyDate: string): string | null {
 		return `${year}-${month}-${day}`;
 	}
 	
-	// Fallback to current date
+	// Try parsing ISO datetime format (YYYY-MM-DDTHH:mm:ss)
+	if (cleaned.includes('T')) {
+		const isoDate = new Date(cleaned);
+		if (!isNaN(isoDate.getTime())) {
+			return isoDate.toISOString().split('T')[0];
+		}
+	}
+	
+	// Last resort: try to parse with Date constructor
+	const parsed = new Date(cleaned);
+	if (!isNaN(parsed.getTime())) {
+		const year = parsed.getFullYear();
+		const month = String(parsed.getMonth() + 1).padStart(2, '0');
+		const day = String(parsed.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+	
+	// Fallback to current date if all parsing fails
+	console.warn(`Could not parse date: "${legacyDate}", using current date`);
 	return new Date().toISOString().split('T')[0];
 }
 
@@ -236,15 +259,20 @@ Generated: ${new Date().toISOString()}
 				
 				for (const invoice of legacyInvoices) {
 					try {
+						// Convert paidDate only if it exists
+						const paidDate = (invoice.paymentDate || invoice.paidDate) 
+							? convertLegacyDate(invoice.paymentDate || invoice.paidDate)
+							: null;
+						
 						await db.insert(invoices).values({
 							supplier: invoice.supplier || 'Unknown',
 							branch: invoice.branch || 'Kuripan',
-							date: convertLegacyDate(invoice.date) || new Date().toISOString().split('T')[0],
+							date: convertLegacyDate(invoice.date),
 							invoiceNumber: invoice.invoiceNumber || `LEGACY-${Date.now()}`,
 							total: invoice.total || '0',
 							description: invoice.description || null,
 							paid: invoice.paid || false,
-							paidDate: convertLegacyDate(invoice.paymentDate || invoice.paidDate),
+							paidDate: paidDate,
 							timestamp: convertLegacyTimestamp(invoice.timestamp),
 						});
 						importedCount++;
