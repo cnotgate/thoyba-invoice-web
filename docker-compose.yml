@@ -45,6 +45,8 @@ services: # PostgreSQL Database
       context: ./frontend
       dockerfile: Dockerfile
     container_name: invoice-frontend
+    depends_on:
+      - backend
     networks:
       - invoice-network
     restart: unless-stopped
