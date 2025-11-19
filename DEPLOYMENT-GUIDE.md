@@ -399,10 +399,11 @@ scp legacy/backend/db.json user@your-server:/tmp/legacy-db.json
 
 # On server, create legacy folder structure inside container
 cd /var/www/thoyba-invoice-web
-sudo docker compose exec backend mkdir -p /app/legacy/backend
+sudo docker compose exec backend mkdir -p /legacy/backend
 
 # Copy the legacy database into the expected location
-sudo docker compose cp /tmp/legacy-db.json backend:/app/legacy/backend/db.json
+# Note: seed.ts looks for /legacy/backend/db.json (process.cwd() is /app, then goes up with '..')
+sudo docker compose cp /tmp/legacy-db.json backend:/legacy/backend/db.json
 
 # Run import (this will take 5-10 minutes for large datasets)
 sudo docker compose exec backend bun run scripts/seed.ts
@@ -411,7 +412,7 @@ sudo docker compose exec backend bun run scripts/seed.ts
 sudo docker compose exec postgres psql -U postgres invoice_db -c "SELECT COUNT(*) FROM invoices;"
 
 # Clean up
-sudo docker compose exec backend rm -rf /app/legacy
+sudo docker compose exec backend rm -rf /legacy
 rm /tmp/legacy-db.json
 ```
 
