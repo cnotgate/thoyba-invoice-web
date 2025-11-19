@@ -4,6 +4,22 @@ import { db, client } from '../src/db/client';
 import { users } from '../src/db/schema';
 import { hashPassword } from '../src/utils/password';
 import { eq } from 'drizzle-orm';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
+
+// Generate a secure random password
+function generatePassword(length: number = 16): string {
+	const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
+	let password = '';
+	const crypto = require('crypto');
+	const array = new Uint8Array(length);
+	crypto.getRandomValues(array);
+	
+	for (let i = 0; i < length; i++) {
+		password += chars[array[i] % chars.length];
+	}
+	return password;
+}
 
 async function startApp() {
 	console.log('🔄 Running database migrations...');
@@ -19,14 +35,44 @@ async function startApp() {
 		
 		if (existingAdmin.length === 0) {
 			console.log('👤 Creating default admin user...');
-			const adminPassword = await hashPassword('admin123');
+			
+			// Generate secure random password
+			const plainPassword = generatePassword(16);
+			const hashedPassword = await hashPassword(plainPassword);
+			
+			// Create admin user
 			await db.insert(users).values({
 				username: 'admin',
-				password: adminPassword,
+				password: hashedPassword,
 				role: 'admin',
 			});
-			console.log('✅ Admin user created! Username: admin, Password: admin123');
-			console.log('⚠️  IMPORTANT: Change the default password after first login!');
+			
+			// Save credentials to file
+			const credentialsPath = join(process.cwd(), 'ADMIN_CREDENTIALS.txt');
+			const credentialsContent = `
+===========================================
+ADMIN CREDENTIALS - GENERATED ON STARTUP
+===========================================
+
+Username: admin
+Password: ${plainPassword}
+
+⚠️  IMPORTANT SECURITY NOTES:
+1. This password was auto-generated on first startup
+2. Save this password in a secure location
+3. Change this password after first login
+4. Delete this file after saving the password
+5. Never commit this file to version control
+
+Generated: ${new Date().toISOString()}
+===========================================
+`;
+			
+			writeFileSync(credentialsPath, credentialsContent);
+			
+			console.log('✅ Admin user created!');
+			console.log('📄 Credentials saved to: ADMIN_CREDENTIALS.txt');
+			console.log('⚠️  IMPORTANT: Save the password from ADMIN_CREDENTIALS.txt and delete the file!');
 		} else {
 			console.log('✅ Admin user already exists');
 		}

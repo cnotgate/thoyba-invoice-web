@@ -3,6 +3,10 @@
 .env.local
 .env.production
 
+# Sensitive credentials
+ADMIN_CREDENTIALS.txt
+**/ADMIN_CREDENTIALS.txt
+
 # Node.js
 node_modules/
 npm-debug.log*

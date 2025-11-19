@@ -78,11 +78,6 @@ const Login: Component = () => {
 						</button>
 					</form>
 
-					<div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-						<p>Kredensial default:</p>
-						<p>admin/admin123 atau user/user123</p>
-					</div>
-
 					<div class="mt-4 text-center">
 						<button
 							onClick={() => navigate('/')}
