@@ -88,12 +88,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800">
                     <div class="flex items-start gap-3">
                         {/* Avatar */}
-                        <div class="relative flex-shrink-0">
+                        <div class="flex-shrink-0">
                             <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                                 {authState.user?.username.charAt(0).toUpperCase()}
                             </div>
-                            {/* Online Status Indicator */}
-                            <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
                         </div>
 
                         {/* User Info */}
@@ -115,12 +113,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
                                         User
                                     </span>
                                 )}
-                            </div>
-
-                            {/* Status Text */}
-                            <div class="mt-1.5 text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                                <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                                Online
                             </div>
                         </div>
                     </div>
