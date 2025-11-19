@@ -1,20 +1,20 @@
 import { Component, createSignal, For } from 'solid-js';
 
 interface Section {
-	id: string;
-	title: string;
-	content: string;
-	subsections?: { title: string; content: string }[];
+    id: string;
+    title: string;
+    content: string;
+    subsections?: { title: string; content: string }[];
 }
 
 const Documentation: Component = () => {
-	const [activeSection, setActiveSection] = createSignal('quick-start');
+    const [activeSection, setActiveSection] = createSignal('quick-start');
 
-	const sections: Section[] = [
-		{
-			id: 'quick-start',
-			title: 'Quick Start',
-			content: `
+    const sections: Section[] = [
+        {
+            id: 'quick-start',
+            title: 'Quick Start',
+            content: `
 				<h2 class="text-2xl font-bold mb-4">Quick Start Guide</h2>
 				<p class="mb-4">Welcome to the Invoice Management System! This guide will help you get started quickly.</p>
 				
@@ -46,11 +46,11 @@ const Documentation: Component = () => {
 					<li>Click "Submit Invoice"</li>
 				</ol>
 			`,
-		},
-		{
-			id: 'admin-guide',
-			title: 'Admin Guide',
-			content: `
+        },
+        {
+            id: 'admin-guide',
+            title: 'Admin Guide',
+            content: `
 				<h2 class="text-2xl font-bold mb-4">Admin Guide</h2>
 				
 				<h3 class="text-xl font-semibold mb-2 mt-6">Login</h3>
@@ -103,11 +103,11 @@ const Documentation: Component = () => {
 					<li>Logout from all devices</li>
 				</ul>
 			`,
-		},
-		{
-			id: 'api',
-			title: 'API Reference',
-			content: `
+        },
+        {
+            id: 'api',
+            title: 'API Reference',
+            content: `
 				<h2 class="text-2xl font-bold mb-4">API Reference</h2>
 				<p class="mb-4">The system provides a RESTful API for programmatic access.</p>
 
@@ -149,11 +149,11 @@ const Documentation: Component = () => {
 
 				<p class="mt-6 mb-4">For complete API documentation, see <a href="https://github.com/cnotgate/thoyba-invoice-web/blob/master/DOCUMENTATION.md" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">DOCUMENTATION.md on GitHub</a>.</p>
 			`,
-		},
-		{
-			id: 'tech-stack',
-			title: 'Technology Stack',
-			content: `
+        },
+        {
+            id: 'tech-stack',
+            title: 'Technology Stack',
+            content: `
 				<h2 class="text-2xl font-bold mb-4">Technology Stack</h2>
 				
 				<h3 class="text-xl font-semibold mb-2 mt-6">Frontend</h3>
@@ -189,11 +189,11 @@ const Documentation: Component = () => {
 					<li><strong>Auto-sync</strong> - Real-time stats updates</li>
 				</ul>
 			`,
-		},
-		{
-			id: 'troubleshooting',
-			title: 'Troubleshooting',
-			content: `
+        },
+        {
+            id: 'troubleshooting',
+            title: 'Troubleshooting',
+            content: `
 				<h2 class="text-2xl font-bold mb-4">Troubleshooting</h2>
 				
 				<h3 class="text-xl font-semibold mb-2 mt-6">Login Issues</h3>
@@ -255,114 +255,113 @@ const Documentation: Component = () => {
 					<li><a href="https://github.com/cnotgate/thoyba-invoice-web/issues" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Report an Issue</a></li>
 				</ul>
 			`,
-		},
-	];
+        },
+    ];
 
-	return (
-		<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-			<div class="container mx-auto px-4 py-8">
-				<div class="mb-8">
-					<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-						Documentation
-					</h1>
-					<p class="text-gray-600 dark:text-gray-400">
-						Learn how to use the Invoice Management System
-					</p>
-				</div>
+    return (
+        <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div class="container mx-auto px-4 py-8">
+                <div class="mb-8">
+                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                        Documentation
+                    </h1>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Learn how to use the Invoice Management System
+                    </p>
+                </div>
 
-				<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-					{/* Sidebar */}
-					<div class="lg:col-span-1">
-						<div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sticky top-4">
-							<h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-								Table of Contents
-							</h2>
-							<nav class="space-y-2">
-								<For each={sections}>
-									{(section) => (
-										<button
-											onClick={() => setActiveSection(section.id)}
-											class={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-												activeSection() === section.id
-													? 'bg-blue-500 text-white'
-													: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-											}`}
-										>
-											{section.title}
-										</button>
-									)}
-								</For>
-							</nav>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    {/* Sidebar */}
+                    <div class="lg:col-span-1">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sticky top-4">
+                            <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                                Table of Contents
+                            </h2>
+                            <nav class="space-y-2">
+                                <For each={sections}>
+                                    {(section) => (
+                                        <button
+                                            onClick={() => setActiveSection(section.id)}
+                                            class={`w-full text-left px-4 py-2 rounded-lg transition-colors ${activeSection() === section.id
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                }`}
+                                        >
+                                            {section.title}
+                                        </button>
+                                    )}
+                                </For>
+                            </nav>
 
-							<div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-								<h3 class="text-sm font-semibold mb-3 text-gray-900 dark:text-white">
-									Quick Links
-								</h3>
-								<div class="space-y-2 text-sm">
-									<a
-										href="/"
-										class="block text-blue-600 dark:text-blue-400 hover:underline"
-									>
-										← Back to Home
-									</a>
-									<a
-										href="/login"
-										class="block text-blue-600 dark:text-blue-400 hover:underline"
-									>
-										Admin Login
-									</a>
-									<a
-										href="https://github.com/cnotgate/thoyba-invoice-web"
-										target="_blank"
-										rel="noopener noreferrer"
-										class="block text-blue-600 dark:text-blue-400 hover:underline"
-									>
-										GitHub Repository ↗
-									</a>
-								</div>
-							</div>
-						</div>
-					</div>
+                            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <h3 class="text-sm font-semibold mb-3 text-gray-900 dark:text-white">
+                                    Quick Links
+                                </h3>
+                                <div class="space-y-2 text-sm">
+                                    <a
+                                        href="/"
+                                        class="block text-blue-600 dark:text-blue-400 hover:underline"
+                                    >
+                                        ← Back to Home
+                                    </a>
+                                    <a
+                                        href="/login"
+                                        class="block text-blue-600 dark:text-blue-400 hover:underline"
+                                    >
+                                        Admin Login
+                                    </a>
+                                    <a
+                                        href="https://github.com/cnotgate/thoyba-invoice-web"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="block text-blue-600 dark:text-blue-400 hover:underline"
+                                    >
+                                        GitHub Repository ↗
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-					{/* Content */}
-					<div class="lg:col-span-3">
-						<div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-							<For each={sections}>
-								{(section) => (
-									<div
-										class={activeSection() === section.id ? 'block' : 'hidden'}
-									>
-										<div
-											class="prose dark:prose-invert max-w-none"
-											innerHTML={section.content}
-										/>
-									</div>
-								)}
-							</For>
-						</div>
+                    {/* Content */}
+                    <div class="lg:col-span-3">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+                            <For each={sections}>
+                                {(section) => (
+                                    <div
+                                        class={activeSection() === section.id ? 'block' : 'hidden'}
+                                    >
+                                        <div
+                                            class="prose dark:prose-invert max-w-none"
+                                            innerHTML={section.content}
+                                        />
+                                    </div>
+                                )}
+                            </For>
+                        </div>
 
-						{/* Footer */}
-						<div class="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-							<p>
-								Built with ❤️ using SolidJS, Bun, and PostgreSQL
-							</p>
-							<p class="mt-2">
-								For complete technical documentation, visit{' '}
-								<a
-									href="https://github.com/cnotgate/thoyba-invoice-web/blob/master/DOCUMENTATION.md"
-									target="_blank"
-									rel="noopener noreferrer"
-									class="text-blue-600 dark:text-blue-400 hover:underline"
-								>
-									DOCUMENTATION.md
-								</a>
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+                        {/* Footer */}
+                        <div class="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+                            <p>
+                                Built with ❤️ using SolidJS, Bun, and PostgreSQL
+                            </p>
+                            <p class="mt-2">
+                                For complete technical documentation, visit{' '}
+                                <a
+                                    href="https://github.com/cnotgate/thoyba-invoice-web/blob/master/DOCUMENTATION.md"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                    DOCUMENTATION.md
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default Documentation;

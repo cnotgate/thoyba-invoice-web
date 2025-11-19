@@ -17,6 +17,7 @@ deploy.bat
 Access the application at: **http://localhost:8600**
 
 **Default Admin Credentials:**
+
 - Username: `admin`
 - Password: `admin123`
 
@@ -43,19 +44,21 @@ Access the application at: **http://localhost:8600**
 ✅ **Type-Safe** - Full TypeScript support  
 ✅ **High Performance** - Stats caching with 10-20x faster dashboard  
 ✅ **Auto-sync** - Real-time stats updates with PostgreSQL triggers  
-✅ **Indonesian Currency Support** - Proper handling of "4.000.000,00" format  
+✅ **Indonesian Currency Support** - Proper handling of "4.000.000,00" format
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **SolidJS** - Reactive UI framework (faster than React)
 - **TypeScript** - Type safety
 - **TailwindCSS** - Modern styling
 - **Vite** - Lightning-fast builds
 
 ### Backend
+
 - **Bun** - Ultra-fast JavaScript runtime (3-4x faster than Node.js)
 - **Hono** - Lightweight web framework
 - **PostgreSQL** - Reliable relational database with stats caching
@@ -63,6 +66,7 @@ Access the application at: **http://localhost:8600**
 - **JWT** - Secure authentication
 
 ### Infrastructure
+
 - **Docker & Docker Compose** - Containerization
 - **Nginx** - Reverse proxy and load balancing
 - **SSL/TLS** - HTTPS support via Let's Encrypt
@@ -106,11 +110,13 @@ POSTGRES_PASSWORD=your-secure-db-password
 ### Step 3: Deploy
 
 **Windows:**
+
 ```cmd
 deploy.bat
 ```
 
 **Linux/Mac:**
+
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
@@ -123,6 +129,7 @@ chmod +x deploy.sh
 - **Health Check:** http://localhost:8600/health
 
 **Login with default credentials:**
+
 - Username: `admin`
 - Password: `admin123`
 

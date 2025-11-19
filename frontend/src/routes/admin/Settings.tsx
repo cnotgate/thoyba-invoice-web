@@ -1,9 +1,11 @@
 import { createSignal, Show } from 'solid-js';
 import { BsPersonCircle, BsShieldCheck, BsGearFill, BsExclamationTriangle } from 'solid-icons/bs';
 import { api } from '../../services/api';
+import { useAuth } from '../../stores/authStore';
 import Toast from '../../components/Toast';
 
 export default function Settings() {
+	const { authState } = useAuth();
 	const [loading, setLoading] = createSignal(false);
 	const [showChangePassword, setShowChangePassword] = createSignal(false);
 	const [showLogoutModal, setShowLogoutModal] = createSignal(false);
@@ -19,10 +21,9 @@ export default function Settings() {
 		setShowToast(true);
 	}
 
-	// Get user info from localStorage
-	const username = localStorage.getItem('username') || 'Unknown';
-	const role = localStorage.getItem('role') || 'user';
-	const createdAt = localStorage.getItem('createdAt') || new Date().toISOString();
+	// Get user info from authStore
+	const username = () => authState.user?.username || 'Unknown';
+	const role = () => authState.user?.role || 'user';
 
 	// Password change form
 	const [passwordForm, setPasswordForm] = createSignal({
@@ -151,7 +152,7 @@ export default function Settings() {
 							Username:
 						</span>
 						<span class="text-base font-semibold text-gray-800 dark:text-white">
-							{username}
+							{username()}
 						</span>
 					</div>
 					<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -160,7 +161,7 @@ export default function Settings() {
 						</span>
 						<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 w-fit">
 							<BsShieldCheck class="w-4 h-4" />
-							{role === 'admin' ? 'Administrator' : 'User'}
+							{role() === 'admin' ? 'Administrator' : 'User'}
 						</span>
 					</div>
 					<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -168,7 +169,7 @@ export default function Settings() {
 							Terdaftar:
 						</span>
 						<span class="text-base text-gray-700 dark:text-gray-300">
-							{formatDate(createdAt)}
+							{authState.user?.created_at ? formatDate(authState.user.created_at) : '-'}
 						</span>
 					</div>
 					<div class="pt-4 border-t border-gray-200 dark:border-gray-700">
