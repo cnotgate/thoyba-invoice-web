@@ -98,8 +98,8 @@ Generated: ${new Date().toISOString()}
 			console.log('✅ Admin user already exists');
 		}
 		
-		// Close migration connection
-		await client.end();
+		// DON'T close the client - the app needs to keep using it!
+		// The connection pool will be managed by the postgres client
 		
 		// Start the application
 		console.log('🚀 Starting application...');
