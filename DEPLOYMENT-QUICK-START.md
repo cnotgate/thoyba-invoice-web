@@ -35,8 +35,8 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 
 # Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker compose
+sudo chmod +x /usr/local/bin/docker compose
 
 # Install Nginx
 sudo apt install nginx -y
@@ -51,7 +51,7 @@ sudo git clone https://github.com/cnotgate/thoyba-invoice-web.git
 cd thoyba-invoice-web
 
 # Deploy
-sudo docker-compose up -d --build
+sudo docker compose up -d --build
 ```
 
 ### 3. Configure Nginx (10 minutes)
@@ -126,19 +126,19 @@ For detailed step-by-step instructions, see:
 **Check if app is running:**
 
 ```bash
-sudo docker-compose ps
+sudo docker compose ps
 ```
 
 **View logs:**
 
 ```bash
-sudo docker-compose logs -f
+sudo docker compose logs -f
 ```
 
 **Restart everything:**
 
 ```bash
-sudo docker-compose restart
+sudo docker compose restart
 sudo systemctl restart nginx
 ```
 
@@ -149,11 +149,11 @@ sudo systemctl restart nginx
 ```bash
 # Update app
 git pull origin master
-sudo docker-compose down
-sudo docker-compose up -d --build
+sudo docker compose down
+sudo docker compose up -d --build
 
 # Backup database
-sudo docker-compose exec postgres pg_dump -U postgres invoice_db > backup.sql
+sudo docker compose exec postgres pg_dump -U postgres invoice_db > backup.sql
 
 # View nginx logs
 sudo tail -f /var/log/nginx/invoice-app-access.log

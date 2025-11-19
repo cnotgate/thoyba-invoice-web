@@ -110,32 +110,32 @@ Open your browser and navigate to:
 ### View Running Containers
 
 ```cmd
-docker-compose -f docker-compose.yml ps
+docker compose -f docker compose.yml ps
 ```
 
 ### View Logs
 
 ```cmd
-docker-compose -f docker-compose.yml logs -f
+docker compose -f docker compose.yml logs -f
 ```
 
 ### Stop All Services
 
 ```cmd
-docker-compose -f docker-compose.yml down
+docker compose -f docker compose.yml down
 ```
 
 ### Restart a Service
 
 ```cmd
-docker-compose -f docker-compose.yml restart backend
-docker-compose -f docker-compose.yml restart frontend
+docker compose -f docker compose.yml restart backend
+docker compose -f docker compose.yml restart frontend
 ```
 
 ### Access Database
 
 ```cmd
-docker-compose -f docker-compose.yml exec postgres psql -U postgres -d invoice_db
+docker compose -f docker compose.yml exec postgres psql -U postgres -d invoice_db
 ```
 
 ---
@@ -144,7 +144,7 @@ docker-compose -f docker-compose.yml exec postgres psql -U postgres -d invoice_d
 
 ### Problem: Port 8600 already in use
 
-**Solution:** Stop the old application or change the port in `docker-compose.yml`:
+**Solution:** Stop the old application or change the port in `docker compose.yml`:
 
 ```yaml
 ports:
@@ -156,7 +156,7 @@ ports:
 **Solution:** Wait a few seconds for PostgreSQL to initialize, then run:
 
 ```cmd
-docker-compose -f docker-compose.yml restart backend
+docker compose -f docker compose.yml restart backend
 ```
 
 ### Problem: Frontend shows blank page
@@ -164,7 +164,7 @@ docker-compose -f docker-compose.yml restart backend
 **Solution:** Check browser console for errors and restart frontend:
 
 ```cmd
-docker-compose -f docker-compose.yml restart frontend
+docker compose -f docker compose.yml restart frontend
 ```
 
 ### Problem: Changes not appearing
@@ -172,7 +172,7 @@ docker-compose -f docker-compose.yml restart frontend
 **Solution:** Rebuild containers:
 
 ```cmd
-docker-compose -f docker-compose.yml up --build -d
+docker compose -f docker compose.yml up --build -d
 ```
 
 ---
@@ -184,7 +184,7 @@ invoice-web/
 ├── backend/          # Modern backend (Bun + Hono + PostgreSQL)
 ├── frontend/         # Modern frontend (SolidJS + TypeScript)
 ├── nginx/            # Nginx reverse proxy config
-├── docker-compose.yml
+├── docker compose.yml
 ├── deploy.bat     # Windows deployment
 ├── deploy.sh      # Linux/Mac deployment
 └── README-MODERN.md      # Full documentation
@@ -196,19 +196,19 @@ invoice-web/
 
 The new system uses different ports and files, so you can run both simultaneously:
 
-- **Old System:** Port 8600, uses `docker-compose.yml`
-- **New System:** Port 8600 (or change it), uses `docker-compose.yml`
+- **Old System:** Port 8600, uses `docker compose.yml`
+- **New System:** Port 8600 (or change it), uses `docker compose.yml`
 
 To run old system:
 
 ```cmd
-docker-compose up -d
+docker compose up -d
 ```
 
 To run new system:
 
 ```cmd
-docker-compose -f docker-compose.yml up -d
+docker compose -f docker compose.yml up -d
 ```
 
 ---
@@ -225,8 +225,8 @@ docker-compose -f docker-compose.yml up -d
 ## 🆘 Need Help?
 
 - 📚 **Full Documentation:** See `README-MODERN.md`
-- 🐛 **Check Logs:** `docker-compose -f docker-compose.yml logs -f`
-- 🔧 **Restart Services:** `docker-compose -f docker-compose.yml restart <service>`
+- 🐛 **Check Logs:** `docker compose -f docker compose.yml logs -f`
+- 🔧 **Restart Services:** `docker compose -f docker compose.yml restart <service>`
 
 ---
 

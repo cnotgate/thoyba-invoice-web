@@ -107,13 +107,13 @@ sudo usermod -aG docker $USER
 ### Step 4: Install Docker Compose
 
 ```bash
-# Install docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# Install docker compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker compose
+sudo chmod +x /usr/local/bin/docker compose
 
 # Verify installation
 docker --version
-docker-compose --version
+docker compose --version
 ```
 
 ### Step 5: Install Nginx
@@ -300,7 +300,7 @@ server {
 cd /var/www/thoyba-invoice-web
 
 # Build and start all containers
-sudo docker-compose up -d --build
+sudo docker compose up -d --build
 ```
 
 **This will:**
@@ -314,7 +314,7 @@ sudo docker-compose up -d --build
 ### Step 2: Check Container Status
 
 ```bash
-sudo docker-compose ps
+sudo docker compose ps
 ```
 
 You should see 3 containers running:
@@ -327,12 +327,12 @@ You should see 3 containers running:
 
 ```bash
 # All containers
-sudo docker-compose logs -f
+sudo docker compose logs -f
 
 # Specific container
-sudo docker-compose logs -f backend
-sudo docker-compose logs -f frontend
-sudo docker-compose logs -f postgres
+sudo docker compose logs -f backend
+sudo docker compose logs -f frontend
+sudo docker compose logs -f postgres
 ```
 
 ---
@@ -350,7 +350,7 @@ sudo docker-compose logs -f postgres
 2. **Check Docker Containers:**
 
    ```bash
-   sudo docker-compose ps
+   sudo docker compose ps
    ```
 
 3. **Test HTTP Access:**
@@ -387,25 +387,25 @@ cd /var/www/thoyba-invoice-web
 git pull origin master
 
 # Rebuild and restart
-sudo docker-compose down
-sudo docker-compose up -d --build
+sudo docker compose down
+sudo docker compose up -d --build
 ```
 
 ### 📊 Database Backup
 
 ```bash
 # Backup database
-sudo docker-compose exec postgres pg_dump -U postgres invoice_db > backup_$(date +%Y%m%d).sql
+sudo docker compose exec postgres pg_dump -U postgres invoice_db > backup_$(date +%Y%m%d).sql
 
 # Restore database
-sudo docker-compose exec -T postgres psql -U postgres invoice_db < backup_20250119.sql
+sudo docker compose exec -T postgres psql -U postgres invoice_db < backup_20250119.sql
 ```
 
 ### 📝 View Logs
 
 ```bash
 # Application logs
-sudo docker-compose logs -f
+sudo docker compose logs -f
 
 # Nginx logs
 sudo tail -f /var/log/nginx/invoice-app-access.log
@@ -416,7 +416,7 @@ sudo tail -f /var/log/nginx/invoice-app-error.log
 
 ```bash
 # Restart docker containers
-sudo docker-compose restart
+sudo docker compose restart
 
 # Restart nginx
 sudo systemctl restart nginx
@@ -425,13 +425,13 @@ sudo systemctl restart nginx
 ### 🛑 Stop Application
 
 ```bash
-sudo docker-compose down
+sudo docker compose down
 ```
 
 ### 🚀 Start Application
 
 ```bash
-sudo docker-compose up -d
+sudo docker compose up -d
 ```
 
 ---
@@ -444,13 +444,13 @@ sudo docker-compose up -d
 
 ```bash
 # Check database is running
-sudo docker-compose ps postgres
+sudo docker compose ps postgres
 
 # Check database logs
-sudo docker-compose logs postgres
+sudo docker compose logs postgres
 
 # Restart database
-sudo docker-compose restart postgres
+sudo docker compose restart postgres
 ```
 
 ### Issue: Port already in use
@@ -472,13 +472,13 @@ sudo kill -9 <PID>
 
 ```bash
 # Check if containers are running
-sudo docker-compose ps
+sudo docker compose ps
 
 # Check nginx error logs
 sudo tail -f /var/log/nginx/invoice-app-error.log
 
 # Restart all services
-sudo docker-compose restart
+sudo docker compose restart
 sudo systemctl restart nginx
 ```
 
@@ -521,7 +521,7 @@ sudo nginx -t
 
 If you encounter issues:
 
-1. Check logs: `sudo docker-compose logs`
+1. Check logs: `sudo docker compose logs`
 2. Verify environment variables: `cat .env`
 3. Check nginx config: `sudo nginx -t`
 4. Review this guide step by step

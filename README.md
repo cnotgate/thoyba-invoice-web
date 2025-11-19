@@ -65,7 +65,7 @@ invoice-web/
 ├── legacy/              # Original system files (archived)
 ├── deploy.bat    # Windows deployment
 ├── deploy.sh     # Linux/Mac deployment
-└── docker-compose.yml
+└── docker compose.yml
 ```
 
 ## 🔐 Default Credentials
@@ -114,20 +114,20 @@ deploy.bat   # Windows
 ./deploy.sh  # Linux/Mac
 
 # Or manually
-docker-compose -f docker-compose.yml up --build -d
+docker compose -f docker compose.yml up --build -d
 ```
 
 ## 📝 Common Commands
 
 ```bash
 # View logs
-docker-compose -f docker-compose.yml logs -f
+docker compose -f docker compose.yml logs -f
 
 # Stop containers
-docker-compose -f docker-compose.yml down
+docker compose -f docker compose.yml down
 
 # Restart containers
-docker-compose -f docker-compose.yml restart
+docker compose -f docker compose.yml restart
 
 # Database migrations
 cd backend
@@ -146,7 +146,7 @@ bun run db:seed
 netstat -ano | findstr :8600
 
 # Stop existing containers
-docker-compose -f docker-compose.yml down
+docker compose -f docker compose.yml down
 ```
 
 ### Database Connection Issues

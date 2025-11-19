@@ -52,7 +52,7 @@ invoice-web/
 │   └── package.json
 │
 ├── nginx/           # Nginx configuration
-├── docker-compose.yml
+├── docker compose.yml
 ├── deploy.bat    # Windows deployment script
 └── deploy.sh     # Linux/Mac deployment script
 ```
@@ -162,16 +162,16 @@ npm run build
 
 ```bash
 # Connect to PostgreSQL
-docker-compose -f docker-compose.yml exec postgres psql -U postgres -d invoice_db
+docker compose -f docker compose.yml exec postgres psql -U postgres -d invoice_db
 
 # Backup database
-docker-compose -f docker-compose.yml exec postgres pg_dump -U postgres invoice_db > backup.sql
+docker compose -f docker compose.yml exec postgres pg_dump -U postgres invoice_db > backup.sql
 
 # Restore database
-docker-compose -f docker-compose.yml exec -T postgres psql -U postgres invoice_db < backup.sql
+docker compose -f docker compose.yml exec -T postgres psql -U postgres invoice_db < backup.sql
 
 # View logs
-docker-compose -f docker-compose.yml logs postgres
+docker compose -f docker compose.yml logs postgres
 ```
 
 ## 🔐 API Endpoints
@@ -223,25 +223,25 @@ docker-compose -f docker-compose.yml logs postgres
 
 ```bash
 # Start services
-docker-compose -f docker-compose.yml up -d
+docker compose -f docker compose.yml up -d
 
 # View logs
-docker-compose -f docker-compose.yml logs -f
+docker compose -f docker compose.yml logs -f
 
 # Stop services
-docker-compose -f docker-compose.yml down
+docker compose -f docker compose.yml down
 
 # Rebuild containers
-docker-compose -f docker-compose.yml up --build -d
+docker compose -f docker compose.yml up --build -d
 
 # Remove volumes (caution: deletes data)
-docker-compose -f docker-compose.yml down -v
+docker compose -f docker compose.yml down -v
 
 # Execute commands in backend
-docker-compose -f docker-compose.yml exec backend bun run <script>
+docker compose -f docker compose.yml exec backend bun run <script>
 
 # Access backend shell
-docker-compose -f docker-compose.yml exec backend sh
+docker compose -f docker compose.yml exec backend sh
 ```
 
 ## 📊 Performance Benefits
@@ -260,33 +260,33 @@ docker-compose -f docker-compose.yml exec backend sh
 
 ```bash
 # Check PostgreSQL is running
-docker-compose -f docker-compose.yml ps
+docker compose -f docker compose.yml ps
 
 # View PostgreSQL logs
-docker-compose -f docker-compose.yml logs postgres
+docker compose -f docker compose.yml logs postgres
 
 # Restart PostgreSQL
-docker-compose -f docker-compose.yml restart postgres
+docker compose -f docker compose.yml restart postgres
 ```
 
 ### Frontend Not Loading
 
 ```bash
 # Check frontend logs
-docker-compose -f docker-compose.yml logs frontend
+docker compose -f docker compose.yml logs frontend
 
 # Rebuild frontend
-docker-compose -f docker-compose.yml up --build frontend
+docker compose -f docker compose.yml up --build frontend
 ```
 
 ### Backend API Errors
 
 ```bash
 # Check backend logs
-docker-compose -f docker-compose.yml logs backend
+docker compose -f docker compose.yml logs backend
 
 # Restart backend
-docker-compose -f docker-compose.yml restart backend
+docker compose -f docker compose.yml restart backend
 ```
 
 ## 🚀 Production Deployment
@@ -317,7 +317,7 @@ Add SSL certificates to nginx configuration or use reverse proxy (Cloudflare, Ca
 ### 4. Deploy
 
 ```bash
-docker-compose -f docker-compose.yml up -d --build
+docker compose -f docker compose.yml up -d --build
 ```
 
 ## 📝 Migration from Old Stack
@@ -326,7 +326,7 @@ To migrate data from the old JSON-based system:
 
 1. Export existing `db.json` data
 2. Transform to SQL format
-3. Import using: `docker-compose -f docker-compose.yml exec -T postgres psql -U postgres invoice_db < data.sql`
+3. Import using: `docker compose -f docker compose.yml exec -T postgres psql -U postgres invoice_db < data.sql`
 
 Or create a custom migration script.
 

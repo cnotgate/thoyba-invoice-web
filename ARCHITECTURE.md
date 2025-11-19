@@ -283,7 +283,7 @@ Docker Compose
 ### Vertical Scaling (Resource Increase)
 
 ```
-docker-compose.yml:
+docker compose.yml:
   backend:
     deploy:
       resources:
@@ -355,7 +355,7 @@ Project Root
 ├── nginx/
 │   └── nginx.conf      → Copied to nginx container
 │
-└── docker-compose.yml  → Orchestrates everything
+└── docker compose.yml  → Orchestrates everything
 ```
 
 ## Technology Stack Map

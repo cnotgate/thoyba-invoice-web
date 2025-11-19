@@ -398,7 +398,7 @@ invoice-web/
 │   │   └── types/       # TypeScript types
 │   └── vite.config.ts
 │
-└── docker-compose.yml    # Production deployment
+└── docker compose.yml    # Production deployment
 ```
 
 ## Making Changes
