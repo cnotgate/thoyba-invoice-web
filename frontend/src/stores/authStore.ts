@@ -7,8 +7,21 @@ interface AuthState {
 	isAuthenticated: boolean;
 }
 
+// Restore user data from localStorage on page load
+const restoreUser = (): User | null => {
+	const userData = localStorage.getItem('user');
+	if (userData) {
+		try {
+			return JSON.parse(userData);
+		} catch {
+			return null;
+		}
+	}
+	return null;
+};
+
 const [authState, setAuthState] = createStore<AuthState>({
-	user: null,
+	user: restoreUser(),
 	token: localStorage.getItem('token') || null,
 	isAuthenticated: !!localStorage.getItem('token'),
 });
@@ -30,6 +43,7 @@ export const useAuth = () => {
 				isAuthenticated: true,
 			});
 			localStorage.setItem('token', data.token);
+			localStorage.setItem('user', JSON.stringify(data.user)); // Save user data
 		}
 
 		return data;
@@ -45,6 +59,7 @@ export const useAuth = () => {
 
 		// Clear all localStorage items
 		localStorage.removeItem('token');
+		localStorage.removeItem('user'); // Remove user data
 		localStorage.removeItem('username');
 		localStorage.removeItem('role');
 		localStorage.removeItem('createdAt');
