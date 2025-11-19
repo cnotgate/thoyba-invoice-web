@@ -397,18 +397,21 @@ If you have historical invoice data from the legacy system (5,000+ invoices), yo
 # From your local machine, copy legacy database
 scp legacy/backend/db.json user@your-server:/tmp/legacy-db.json
 
-# On server, copy into backend container
+# On server, create legacy folder structure inside container
 cd /var/www/thoyba-invoice-web
-sudo docker compose cp /tmp/legacy-db.json backend:/app/legacy-db.json
+sudo docker compose exec backend mkdir -p /app/legacy/backend
+
+# Copy the legacy database into the expected location
+sudo docker compose cp /tmp/legacy-db.json backend:/app/legacy/backend/db.json
 
 # Run import (this will take 5-10 minutes for large datasets)
-sudo docker compose exec backend sh -c 'cd /app && bun run scripts/seed.ts'
+sudo docker compose exec backend bun run scripts/seed.ts
 
 # Check import results
 sudo docker compose exec postgres psql -U postgres invoice_db -c "SELECT COUNT(*) FROM invoices;"
 
 # Clean up
-sudo docker compose exec backend rm /app/legacy-db.json
+sudo docker compose exec backend rm -rf /app/legacy
 rm /tmp/legacy-db.json
 ```
 
