@@ -1,5 +1,5 @@
-import { db } from './src/db/client';
-import { stats } from './src/db/schema';
+import { db } from '../src/db/client';
+import { stats } from '../src/db/schema';
 
 async function showCurrentStats() {
 	console.log('=== Current Stats in Database ===\n');

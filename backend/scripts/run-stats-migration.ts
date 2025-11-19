@@ -1,4 +1,4 @@
-import { db } from './src/db/client';
+import { db } from '../src/db/client';
 import { sql } from 'drizzle-orm';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,7 +8,7 @@ async function runMigration() {
 		console.log('Running stats migration...');
 
 		// Read the migration file
-		const migrationPath = path.join(__dirname, 'src/db/migrations/0003_add_stats_table.sql');
+		const migrationPath = path.join(__dirname, '../src/db/migrations/0003_add_stats_table.sql');
 		const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
 
 		// Execute the migration
