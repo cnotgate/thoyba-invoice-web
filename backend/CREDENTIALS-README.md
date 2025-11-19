@@ -30,6 +30,7 @@ cat backend/ADMIN_CREDENTIALS.txt
 ## Important Security Notes
 
 ⚠️ **IMPORTANT:**
+
 1. Save the password in a secure password manager
 2. Change the password after first login
 3. Delete `ADMIN_CREDENTIALS.txt` after saving the password

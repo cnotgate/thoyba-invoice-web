@@ -162,6 +162,7 @@ External (Server Host)
 ```
 
 **Important for Production:**
+
 - Only expose port **8600** on your server
 - Host nginx should **only proxy to port 8600**
 - The nginx container (8600) handles all internal routing:
@@ -171,11 +172,12 @@ External (Server Host)
 - Ports 3000, 3001, and 5432 remain **internal to Docker network**
 
 **Example host nginx configuration:**
+
 ```nginx
 server {
     listen 80;
     server_name your-domain.com;
-    
+
     location / {
         proxy_pass http://localhost:8600;  # Only this!
         proxy_set_header Host $host;

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { db } from '../db/client';
-import { invoices } from '../db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { invoices, stats } from '../db/schema';
+import { eq, desc, sql, and } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/auth';
 
 const invoiceRouter = new Hono();
@@ -28,6 +28,28 @@ invoiceRouter.post('/', async (c) => {
 	} catch (error) {
 		console.error('Create invoice error:', error);
 		return c.json({ success: false, message: 'Failed to create invoice' }, 500);
+	}
+});
+
+// Protected: Get dashboard statistics (from cached stats table)
+invoiceRouter.get('/stats', authMiddleware, async (c) => {
+	try {
+		// Get stats from cache table
+		const [statsData] = await db.select().from(stats).limit(1);
+
+		// Get recent 5 invoices
+		const recentInvoices = await db.select().from(invoices).orderBy(desc(invoices.timestamp)).limit(5);
+
+		return c.json({
+			total: statsData?.totalInvoices || 0,
+			paid: statsData?.paidInvoices || 0,
+			unpaid: statsData?.unpaidInvoices || 0,
+			totalValue: Number(statsData?.totalValue) || 0,
+			recent: recentInvoices,
+		});
+	} catch (error) {
+		console.error('Get stats error:', error);
+		return c.json({ success: false, message: 'Failed to get statistics' }, 500);
 	}
 });
 
@@ -82,10 +104,30 @@ invoiceRouter.get('/paginated', authMiddleware, async (c) => {
 	}
 });
 
-// Protected: Get all invoices (for admin)
+// Protected: Get all invoices (for admin) - with optional pagination
 invoiceRouter.get('/', authMiddleware, async (c) => {
 	try {
+		const limit = c.req.query('limit');
+		const offset = c.req.query('offset');
+
+		// If pagination params provided, use them
+		if (limit || offset) {
+			const limitNum = parseInt(limit || '100');
+			const offsetNum = parseInt(offset || '0');
+
+			const allInvoices = await db
+				.select()
+				.from(invoices)
+				.orderBy(desc(invoices.timestamp))
+				.limit(limitNum)
+				.offset(offsetNum);
+
+			return c.json(allInvoices);
+		}
+
+		// Otherwise return all (for backwards compatibility)
 		const allInvoices = await db.select().from(invoices).orderBy(desc(invoices.timestamp));
+
 		return c.json(allInvoices);
 	} catch (error) {
 		console.error('Get invoices error:', error);

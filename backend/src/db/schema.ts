@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, boolean, text, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, boolean, text, index, integer, decimal } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -12,6 +12,15 @@ export const suppliers = pgTable('suppliers', {
 	id: serial('id').primaryKey(),
 	name: varchar('name', { length: 255 }).notNull().unique(),
 	createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const stats = pgTable('stats', {
+	id: serial('id').primaryKey(),
+	totalInvoices: integer('total_invoices').notNull().default(0),
+	paidInvoices: integer('paid_invoices').notNull().default(0),
+	unpaidInvoices: integer('unpaid_invoices').notNull().default(0),
+	totalValue: decimal('total_value', { precision: 15, scale: 2 }).notNull().default('0'),
+	lastUpdated: timestamp('last_updated').defaultNow().notNull(),
 });
 
 export const invoices = pgTable(
@@ -34,6 +43,7 @@ export const invoices = pgTable(
 		paidIdx: index('idx_invoices_paid').on(table.paid),
 		timestampIdx: index('idx_invoices_timestamp').on(table.timestamp),
 		branchIdx: index('idx_invoices_branch').on(table.branch),
+		invoiceNumberIdx: index('idx_invoices_invoice_number').on(table.invoiceNumber),
 	})
 );
 
@@ -43,3 +53,5 @@ export type Supplier = typeof suppliers.$inferSelect;
 export type NewSupplier = typeof suppliers.$inferInsert;
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
+export type Stats = typeof stats.$inferSelect;
+export type NewStats = typeof stats.$inferInsert;

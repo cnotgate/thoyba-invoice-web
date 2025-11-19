@@ -11,7 +11,7 @@ function generatePassword(length: number = 16): string {
 	const crypto = require('crypto');
 	const array = new Uint8Array(length);
 	crypto.getRandomValues(array);
-	
+
 	for (let i = 0; i < length; i++) {
 		password += chars[array[i] % chars.length];
 	}
@@ -23,21 +23,30 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 	if (!legacyDate || legacyDate.trim() === '') {
 		return new Date().toISOString().split('T')[0];
 	}
-	
+
 	const cleaned = legacyDate.trim();
-	
+
 	// If already ISO format (YYYY-MM-DD), return as-is
 	if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
 		return cleaned;
 	}
-	
+
 	// Indonesian month names mapping (case-insensitive)
 	const monthMap: Record<string, string> = {
-		'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
-		'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08',
-		'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'
+		januari: '01',
+		februari: '02',
+		maret: '03',
+		april: '04',
+		mei: '05',
+		juni: '06',
+		juli: '07',
+		agustus: '08',
+		september: '09',
+		oktober: '10',
+		november: '11',
+		desember: '12',
 	};
-	
+
 	// Try parsing "DD Month YYYY" or "D Month YYYY" format (e.g., "17 Januari 2024" or "7 Mei 2025")
 	const match = cleaned.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/i);
 	if (match) {
@@ -49,7 +58,7 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 			return `${year}-${month}-${day}`;
 		}
 	}
-	
+
 	// Try parsing "DD/MM/YYYY" format (e.g., "04/10/2025")
 	const ddmmyyyy = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
 	if (ddmmyyyy) {
@@ -58,7 +67,7 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 		const year = ddmmyyyy[3];
 		return `${year}-${month}-${day}`;
 	}
-	
+
 	// Try parsing "DD/MM/YY" format with 2-digit year (e.g., "21/5/24")
 	const ddmmyy = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
 	if (ddmmyy) {
@@ -69,13 +78,13 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 		const year = yearShort >= 0 && yearShort <= 99 ? `20${ddmmyy[3].padStart(2, '0')}` : ddmmyy[3];
 		return `${year}-${month}-${day}`;
 	}
-	
+
 	// Try parsing "DD/MM" format without year (e.g., "21/5", "30/5")
 	const ddmm = cleaned.match(/^(\d{1,2})\/(\d{1,2})$/);
 	if (ddmm) {
 		const day = ddmm[1].padStart(2, '0');
 		const month = ddmm[2].padStart(2, '0');
-		
+
 		// Infer year from timestamp if available, otherwise use current year
 		let year = new Date().getFullYear();
 		if (timestampForYearInference) {
@@ -84,10 +93,10 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 				year = timestampDate.getFullYear();
 			}
 		}
-		
+
 		return `${year}-${month}-${day}`;
 	}
-	
+
 	// Try parsing ISO datetime format (YYYY-MM-DDTHH:mm:ss)
 	if (cleaned.includes('T')) {
 		const isoDate = new Date(cleaned);
@@ -95,7 +104,7 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 			return isoDate.toISOString().split('T')[0];
 		}
 	}
-	
+
 	// Last resort: try to parse with Date constructor
 	const parsed = new Date(cleaned);
 	if (!isNaN(parsed.getTime())) {
@@ -104,7 +113,7 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 		const day = String(parsed.getDate()).padStart(2, '0');
 		return `${year}-${month}-${day}`;
 	}
-	
+
 	// Fallback to current date if all parsing fails
 	console.warn(`Could not parse date: "${legacyDate}", using current date`);
 	return new Date().toISOString().split('T')[0];
@@ -113,7 +122,7 @@ function convertLegacyDate(legacyDate: string, timestampForYearInference?: strin
 // Convert legacy timestamp to ISO timestamp
 function convertLegacyTimestamp(legacyTimestamp: string): Date {
 	if (!legacyTimestamp) return new Date();
-	
+
 	// Try parsing "DD/MM/YYYY HH:mm:ss" format
 	const match = legacyTimestamp.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/);
 	if (match) {
@@ -125,13 +134,13 @@ function convertLegacyTimestamp(legacyTimestamp: string): Date {
 		const second = parseInt(match[6]);
 		return new Date(year, month, day, hour, minute, second);
 	}
-	
+
 	// Try parsing as ISO string
 	const parsed = new Date(legacyTimestamp);
 	if (!isNaN(parsed.getTime())) {
 		return parsed;
 	}
-	
+
 	return new Date();
 }
 
@@ -191,18 +200,18 @@ async function seed() {
 		// Create admin user with auto-generated password (skip if already exists)
 		try {
 			console.log('Creating admin user...');
-			
+
 			// Generate secure random password
 			const plainPassword = generatePassword(16);
 			const hashedPassword = await hashPassword(plainPassword);
-			
+
 			// Create admin user
 			await db.insert(users).values({
 				username: 'admin',
 				password: hashedPassword,
 				role: 'admin',
 			});
-			
+
 			// Save credentials to file
 			const credentialsPath = join(process.cwd(), 'ADMIN_CREDENTIALS.txt');
 			const credentialsContent = `
@@ -223,9 +232,9 @@ Password: ${plainPassword}
 Generated: ${new Date().toISOString()}
 ===========================================
 `;
-			
+
 			writeFileSync(credentialsPath, credentialsContent);
-			
+
 			console.log('✅ Admin user created!');
 			console.log('📄 Credentials saved to: ADMIN_CREDENTIALS.txt');
 			console.log('⚠️  IMPORTANT: Save the password from ADMIN_CREDENTIALS.txt and delete the file!');
@@ -260,7 +269,7 @@ Generated: ${new Date().toISOString()}
 		console.log('\n📦 Checking for legacy invoices...');
 		try {
 			const legacyDbPath = join(process.cwd(), '..', 'legacy', 'backend', 'db.json');
-			
+
 			// Check if legacy file exists
 			let legacyData;
 			try {
@@ -276,24 +285,25 @@ Generated: ${new Date().toISOString()}
 				}
 				throw fileError; // Re-throw other errors
 			}
-			
+
 			if (legacyData.invoices && Array.isArray(legacyData.invoices)) {
 				const legacyInvoices = legacyData.invoices;
 				console.log(`Found ${legacyInvoices.length} invoices in legacy database`);
-				
+
 				let importedCount = 0;
 				let errorCount = 0;
 				const errorTypes: Record<string, number> = {};
 				const sampleErrors: string[] = [];
-				
+
 				for (const invoice of legacyInvoices) {
 					try {
 						// Convert dates, passing timestamp for year inference when date format lacks year
 						const invoiceDate = convertLegacyDate(invoice.date, invoice.timestamp);
-						const paidDate = (invoice.paymentDate || invoice.paidDate) 
-							? convertLegacyDate(invoice.paymentDate || invoice.paidDate, invoice.timestamp)
-							: null;
-						
+						const paidDate =
+							invoice.paymentDate || invoice.paidDate
+								? convertLegacyDate(invoice.paymentDate || invoice.paidDate, invoice.timestamp)
+								: null;
+
 						await db.insert(invoices).values({
 							supplier: invoice.supplier || 'Unknown',
 							branch: invoice.branch || 'Kuripan',
@@ -306,18 +316,18 @@ Generated: ${new Date().toISOString()}
 							timestamp: convertLegacyTimestamp(invoice.timestamp),
 						});
 						importedCount++;
-						
+
 						// Show progress every 100 invoices
 						if (importedCount % 100 === 0) {
 							console.log(`   Imported ${importedCount}/${legacyInvoices.length} invoices...`);
 						}
 					} catch (error: any) {
 						errorCount++;
-						
+
 						// Track error types
 						const errorKey = error.code || error.message?.substring(0, 50) || 'Unknown';
 						errorTypes[errorKey] = (errorTypes[errorKey] || 0) + 1;
-						
+
 						// Collect first 5 sample errors with details
 						if (sampleErrors.length < 5) {
 							sampleErrors.push(
@@ -326,7 +336,7 @@ Generated: ${new Date().toISOString()}
 						}
 					}
 				}
-				
+
 				console.log(`✅ Imported ${importedCount} legacy invoices`);
 				if (errorCount > 0) {
 					console.log(`⚠️  Skipped ${errorCount} invoices due to errors\n`);

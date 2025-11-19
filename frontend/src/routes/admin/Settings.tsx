@@ -1,11 +1,23 @@
 import { createSignal, Show } from 'solid-js';
-import { useNavigate } from '@solidjs/router';
 import { BsPersonCircle, BsShieldCheck, BsGearFill, BsExclamationTriangle } from 'solid-icons/bs';
+import { api } from '../../services/api';
+import Toast from '../../components/Toast';
 
 export default function Settings() {
-	const navigate = useNavigate();
 	const [loading, setLoading] = createSignal(false);
 	const [showChangePassword, setShowChangePassword] = createSignal(false);
+	const [showLogoutModal, setShowLogoutModal] = createSignal(false);
+
+	// Toast
+	const [showToast, setShowToast] = createSignal(false);
+	const [toastMessage, setToastMessage] = createSignal('');
+	const [toastType, setToastType] = createSignal<'success' | 'error' | 'info'>('success');
+
+	function triggerToast(message: string, type: 'success' | 'error' | 'info' = 'success') {
+		setToastMessage(message);
+		setToastType(type);
+		setShowToast(true);
+	}
 
 	// Get user info from localStorage
 	const username = localStorage.getItem('username') || 'Unknown';
@@ -26,20 +38,40 @@ export default function Settings() {
 		e.preventDefault();
 		const form = passwordForm();
 
+		// Validation
+		if (!form.currentPassword) {
+			triggerToast('Password saat ini harus diisi!', 'error');
+			return;
+		}
+
+		if (!form.newPassword) {
+			triggerToast('Password baru harus diisi!', 'error');
+			return;
+		}
+
 		if (form.newPassword !== form.confirmPassword) {
-			alert('Password baru tidak cocok!');
+			triggerToast('Password baru tidak cocok!', 'error');
 			return;
 		}
 
 		if (form.newPassword.length < 6) {
-			alert('Password minimal 6 karakter!');
+			triggerToast('Password minimal 6 karakter!', 'error');
+			return;
+		}
+
+		if (form.currentPassword === form.newPassword) {
+			triggerToast('Password baru harus berbeda dengan password lama!', 'error');
 			return;
 		}
 
 		setLoading(true);
 		try {
-			// TODO: Implement change password API
-			alert('Fitur ganti password akan segera tersedia!');
+			await api.changePassword({
+				currentPassword: form.currentPassword,
+				newPassword: form.newPassword,
+			});
+
+			triggerToast('Password berhasil diubah!', 'success');
 			setShowChangePassword(false);
 			setPasswordForm({
 				currentPassword: '',
@@ -47,7 +79,8 @@ export default function Settings() {
 				confirmPassword: ''
 			});
 		} catch (error) {
-			alert('Gagal mengganti password!');
+			const errorMessage = error instanceof Error ? error.message : 'Gagal mengganti password!';
+			triggerToast(errorMessage, 'error');
 		} finally {
 			setLoading(false);
 		}
@@ -72,14 +105,19 @@ export default function Settings() {
 		localStorage.setItem('theme', newTheme);
 	}
 
-	function handleLogout() {
-		if (confirm('Yakin ingin keluar?')) {
-			localStorage.removeItem('token');
-			localStorage.removeItem('username');
-			localStorage.removeItem('role');
-			localStorage.removeItem('createdAt');
-			navigate('/login');
-		}
+	function handleLogoutClick() {
+		setShowLogoutModal(true);
+	}
+
+	function handleLogoutConfirm() {
+		// Clear all auth data
+		localStorage.removeItem('token');
+		localStorage.removeItem('username');
+		localStorage.removeItem('role');
+		localStorage.removeItem('createdAt');
+
+		// Force reload to login page
+		window.location.href = '/login';
 	}
 
 	function formatDate(isoString: string) {
@@ -217,8 +255,8 @@ export default function Settings() {
 							<button
 								onClick={() => handleThemeChange('light')}
 								class={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${theme() === 'light'
-										? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-										: 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+									? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+									: 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
 									}`}
 							>
 								<div class="text-sm font-medium">☀️ Terang</div>
@@ -226,8 +264,8 @@ export default function Settings() {
 							<button
 								onClick={() => handleThemeChange('dark')}
 								class={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${theme() === 'dark'
-										? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-										: 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+									? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+									: 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
 									}`}
 							>
 								<div class="text-sm font-medium">🌙 Gelap</div>
@@ -235,8 +273,8 @@ export default function Settings() {
 							<button
 								onClick={() => handleThemeChange('system')}
 								class={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${theme() === 'system'
-										? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-										: 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+									? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+									: 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
 									}`}
 							>
 								<div class="text-sm font-medium">💻 Sistem</div>
@@ -267,7 +305,7 @@ export default function Settings() {
 							</p>
 						</div>
 						<button
-							onClick={handleLogout}
+							onClick={handleLogoutClick}
 							class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
 						>
 							Keluar
@@ -275,6 +313,52 @@ export default function Settings() {
 					</div>
 				</div>
 			</section>
+
+			{/* Logout Confirmation Modal */}
+			<Show when={showLogoutModal()}>
+				<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+						<div class="p-6">
+							<div class="flex items-center gap-3 mb-4">
+								<div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+									<BsExclamationTriangle class="w-6 h-6 text-red-600 dark:text-red-400" />
+								</div>
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+									Konfirmasi Keluar
+								</h3>
+							</div>
+							<p class="text-gray-600 dark:text-gray-400 mb-6">
+								Apakah Anda yakin ingin keluar dari aplikasi? Anda harus login kembali untuk mengakses sistem.
+							</p>
+							<div class="flex gap-3">
+								<button
+									type="button"
+									onClick={() => setShowLogoutModal(false)}
+									class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+								>
+									Batal
+								</button>
+								<button
+									type="button"
+									onClick={handleLogoutConfirm}
+									class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+								>
+									Ya, Keluar
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</Show>
+
+			{/* Toast Notification */}
+			<Show when={showToast()}>
+				<Toast
+					message={toastMessage()}
+					type={toastType()}
+					onClose={() => setShowToast(false)}
+				/>
+			</Show>
 		</div>
 	);
 }

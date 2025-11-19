@@ -42,7 +42,7 @@ async function importLegacy() {
     try {
         const data = JSON.parse(readFileSync("/app/legacy-db.json", "utf-8"));
         let count = 0;
-        
+
         for (const inv of data.invoices || []) {
             try {
                 await db.insert(invoices).values({
@@ -62,7 +62,7 @@ async function importLegacy() {
                 console.error(`Skip invoice ${inv.invoiceNumber}`);
             }
         }
-        
+
         console.log(`✅ Imported ${count} invoices`);
         await client.end();
     } catch (error) {

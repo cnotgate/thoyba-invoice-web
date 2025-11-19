@@ -211,12 +211,14 @@ server {
 ```
 
 **Note:** The nginx container (port 8600) internally handles:
+
 - Frontend serving (SolidJS SPA)
 - API routing to backend (`/api` → backend:3001)
 - Health checks (`/health` → backend:3001)
 
 You only need to expose and proxy to port **8600**. Ports 3000 (frontend) and 3001 (backend) remain internal to the Docker network.
-```
+
+````
 
 ### Step 2: Enable the Site
 
@@ -232,7 +234,7 @@ sudo nginx -t
 
 # Reload nginx
 sudo systemctl reload nginx
-```
+````
 
 ---
 
@@ -366,12 +368,13 @@ sudo docker compose logs -f postgres
    ```bash
    # View auto-generated admin password
    sudo docker compose exec backend cat ADMIN_CREDENTIALS.txt
-   
+
    # Or copy to your local machine
    sudo docker compose cp backend:/app/ADMIN_CREDENTIALS.txt ./
    ```
 
    ⚠️ **IMPORTANT:**
+
    - Save the password in a secure password manager
    - Delete the credentials file after saving: `sudo docker compose exec backend rm ADMIN_CREDENTIALS.txt`
    - Change the password after first login
@@ -477,6 +480,7 @@ sudo docker compose up -d --build
 ```
 
 **⚠️ WARNING:** This will permanently delete ALL data including:
+
 - All invoices
 - All users
 - All suppliers

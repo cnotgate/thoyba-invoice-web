@@ -5,21 +5,8 @@ import { BsFileEarmarkText, BsCheckCircleFill, BsClock, BsCurrencyDollar, BsArro
 
 const Dashboard: Component = () => {
 	const [stats] = createResource(async () => {
-		const invoices = await api.getInvoices();
-
-		const total = invoices.length;
-		const paid = invoices.filter((inv) => inv.paid).length;
-		const unpaid = total - paid;
-		const totalValue = invoices.reduce((sum, inv) => {
-			const value = parseFloat(inv.total.replace(/\./g, '').replace(/,/g, '.'));
-			return sum + (isNaN(value) ? 0 : value);
-		}, 0);
-
-		const recent = invoices
-			.sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime())
-			.slice(0, 5);
-
-		return { total, paid, unpaid, totalValue, recent };
+		// Use the new lightweight stats endpoint
+		return await api.getDashboardStats();
 	});
 
 	const formatCurrency = (value: number) => {
@@ -179,8 +166,8 @@ const Dashboard: Component = () => {
 													<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
 														{invoice.invoiceNumber}
 													</td>
-													<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-														Rp {invoice.total}
+													<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+														{formatCurrency(parseFloat(invoice.total.replace(/[^0-9.-]+/g, '')))}
 													</td>
 													<td class="px-6 py-4 whitespace-nowrap">
 														<span

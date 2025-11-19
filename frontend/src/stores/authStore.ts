@@ -36,12 +36,21 @@ export const useAuth = () => {
 	};
 
 	const logout = () => {
+		// Clear auth state
 		setAuthState({
 			user: null,
 			token: null,
 			isAuthenticated: false,
 		});
+
+		// Clear all localStorage items
 		localStorage.removeItem('token');
+		localStorage.removeItem('username');
+		localStorage.removeItem('role');
+		localStorage.removeItem('createdAt');
+
+		// Force redirect to login page
+		window.location.href = '/login';
 	};
 
 	return {

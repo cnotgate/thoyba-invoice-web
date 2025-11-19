@@ -60,8 +60,26 @@ export const api = {
 		return response.json();
 	},
 
-	async getInvoices(): Promise<Invoice[]> {
-		const response = await fetch(`${API_BASE}/invoices`, {
+	async getInvoices(limit?: number, offset?: number): Promise<Invoice[]> {
+		const params = new URLSearchParams();
+		if (limit !== undefined) params.append('limit', limit.toString());
+		if (offset !== undefined) params.append('offset', offset.toString());
+
+		const url = `${API_BASE}/invoices${params.toString() ? '?' + params.toString() : ''}`;
+		const response = await fetch(url, {
+			headers: getAuthHeaders(),
+		});
+		return response.json();
+	},
+
+	async getDashboardStats(): Promise<{
+		total: number;
+		paid: number;
+		unpaid: number;
+		totalValue: number;
+		recent: Invoice[];
+	}> {
+		const response = await fetch(`${API_BASE}/invoices/stats`, {
 			headers: getAuthHeaders(),
 		});
 		return response.json();
@@ -115,6 +133,22 @@ export const api = {
 			headers: getAuthHeaders(),
 		});
 		return response.json();
+	},
+
+	async changePassword(data: {
+		currentPassword: string;
+		newPassword: string;
+	}): Promise<{ success: boolean; message: string }> {
+		const response = await fetch(`${API_BASE}/users/change-password`, {
+			method: 'PATCH',
+			headers: getAuthHeaders(),
+			body: JSON.stringify(data),
+		});
+		const result = await response.json();
+		if (!response.ok) {
+			throw new Error(result.message || 'Failed to change password');
+		}
+		return result;
 	},
 
 	// Auth

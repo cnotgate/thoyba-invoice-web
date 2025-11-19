@@ -57,6 +57,7 @@
 ```
 
 **Key Points:**
+
 - Only **port 8600** is exposed to the host
 - Ports 3000, 3001, and 5432 are **internal** to Docker network
 - Host nginx only needs to proxy to **port 8600**
