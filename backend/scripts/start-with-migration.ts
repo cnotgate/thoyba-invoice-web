@@ -21,7 +21,28 @@ function generatePassword(length: number = 16): string {
 	return password;
 }
 
+// Wait for database to be ready
+async function waitForDatabase(maxRetries = 30, delay = 1000): Promise<void> {
+	console.log('⏳ Waiting for database to be ready...');
+	
+	for (let i = 0; i < maxRetries; i++) {
+		try {
+			await client`SELECT 1`;
+			console.log('✅ Database is ready!');
+			return;
+		} catch (error) {
+			console.log(`   Attempt ${i + 1}/${maxRetries} - Database not ready yet...`);
+			await new Promise(resolve => setTimeout(resolve, delay));
+		}
+	}
+	
+	throw new Error('Database connection timeout after ' + maxRetries + ' attempts');
+}
+
 async function startApp() {
+	// Wait for database to be ready first
+	await waitForDatabase();
+	
 	console.log('🔄 Running database migrations...');
 	
 	try {

@@ -11,7 +11,17 @@ authRouter.post('/login', async (c) => {
 	try {
 		const { username, password } = await c.req.json();
 
-		const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
+		// Query database with error handling
+		let user;
+		try {
+			[user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
+		} catch (dbError: any) {
+			console.error('Database error during login:', dbError);
+			return c.json({ 
+				success: false, 
+				message: 'Database connection error. Please try again.' 
+			}, 503);
+		}
 
 		if (!user) {
 			return c.json({ success: false, message: 'Invalid credentials' }, 401);
