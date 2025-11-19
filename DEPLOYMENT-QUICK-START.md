@@ -58,7 +58,7 @@ sudo docker compose up -d --build
 sleep 30
 
 # Run stats table migration (NEW - one-time setup)
-sudo docker compose exec backend bun run run-stats-migration.ts
+sudo docker compose exec backend bun run /app/run-stats-migration.ts
 ```
 
 ### 3. Configure Nginx (10 minutes)

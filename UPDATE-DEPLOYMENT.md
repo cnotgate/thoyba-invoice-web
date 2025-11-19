@@ -29,7 +29,7 @@ sleep 30
 
 ```bash
 # Run migration inside backend container
-sudo docker compose exec backend bun run run-stats-migration.ts
+sudo docker compose exec backend bun run /app/run-stats-migration.ts
 ```
 
 **Expected Output:**
@@ -45,7 +45,7 @@ Running stats migration...
 
 ```bash
 # Check stats data
-sudo docker compose exec backend bun run show-stats.ts
+sudo docker compose exec backend bun run /app/show-stats.ts
 ```
 
 **Expected Output:**
@@ -115,7 +115,7 @@ Note: Stats table tidak akan mengganggu data lain jika dibiarkan.
 
 **Error: "relation stats does not exist"**
 
-- Run migration: `sudo docker compose exec backend bun run run-stats-migration.ts`
+- Run migration: `sudo docker compose exec backend bun run /app/run-stats-migration.ts`
 
 **Stats tidak update:**
 
