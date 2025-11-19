@@ -5,9 +5,9 @@ async function analyzeProductionData() {
 	console.log('=== Production Data Analysis ===\n');
 
 	// Get invoice count
-	const countResult = await db.execute(sql`
+	const countResult = (await db.execute(sql`
 		SELECT COUNT(*) as total_count FROM invoices
-	`) as any;
+	`)) as any;
 
 	console.log('📊 Invoice Count:');
 	console.log('  Total:', countResult[0].total_count);
@@ -15,11 +15,11 @@ async function analyzeProductionData() {
 	console.log('  Difference:', 5070 - Number(countResult[0].total_count));
 
 	// Calculate actual sum
-	const sumResult = await db.execute(sql`
+	const sumResult = (await db.execute(sql`
 		SELECT 
 			SUM(CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(20, 2))) as actual_sum
 		FROM invoices
-	`) as any;
+	`)) as any;
 
 	console.log('\n💰 Total Value:');
 	console.log('  Actual Sum: Rp', Number(sumResult[0].actual_sum).toLocaleString('id-ID'));
@@ -27,14 +27,14 @@ async function analyzeProductionData() {
 	console.log('  Difference: Rp', (Number(sumResult[0].actual_sum) - 404250241096.06).toLocaleString('id-ID'));
 
 	// Check paid/unpaid breakdown
-	const breakdown = await db.execute(sql`
+	const breakdown = (await db.execute(sql`
 		SELECT 
 			paid,
 			COUNT(*) as count,
 			SUM(CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(20, 2))) as sum_value
 		FROM invoices
 		GROUP BY paid
-	`) as any;
+	`)) as any;
 
 	console.log('\n📈 Breakdown by Payment Status:');
 	breakdown.forEach((row: any) => {

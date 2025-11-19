@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 const Home = lazy(() => import('./routes/Home'));
 const Login = lazy(() => import('./routes/Login'));
+const Documentation = lazy(() => import('./routes/Documentation'));
 const Dashboard = lazy(() => import('./routes/admin/Dashboard'));
 const Invoices = lazy(() => import('./routes/admin/Invoices'));
 const Users = lazy(() => import('./routes/admin/Users'));
@@ -27,6 +28,7 @@ function App() {
 		<>
 			<Route path="/" component={Home} />
 			<Route path="/login" component={Login} />
+			<Route path="/docs" component={Documentation} />
 			<Route path="/admin" component={DashboardPage} />
 			<Route path="/admin/invoices" component={InvoicesPage} />
 			<Route path="/admin/users" component={UsersPage} />

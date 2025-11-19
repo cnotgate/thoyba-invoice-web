@@ -5,7 +5,7 @@ async function checkProductionDuplicates() {
 	console.log('=== Checking Production Duplicates ===\n');
 
 	// Check for duplicate invoice numbers
-	const duplicates = await db.execute(sql`
+	const duplicates = (await db.execute(sql`
 		SELECT 
 			invoice_number,
 			COUNT(*) as duplicate_count,
@@ -17,11 +17,11 @@ async function checkProductionDuplicates() {
 		HAVING COUNT(*) > 1
 		ORDER BY COUNT(*) DESC
 		LIMIT 20
-	`) as any;
+	`)) as any;
 
 	if (duplicates.length > 0) {
 		console.log(`⚠️  Found ${duplicates.length} duplicate invoice numbers:\n`);
-		
+
 		let totalDuplicateInvoices = 0;
 		let totalDuplicateValue = 0;
 
@@ -31,7 +31,7 @@ async function checkProductionDuplicates() {
 			console.log(`   IDs: ${dup.ids}`);
 			console.log(`   Totals: ${dup.totals}`);
 			console.log(`   Sum: Rp ${Number(dup.sum_of_duplicates).toLocaleString('id-ID')}\n`);
-			
+
 			totalDuplicateInvoices += Number(dup.duplicate_count) - 1; // -1 because we keep one
 			totalDuplicateValue += Number(dup.sum_of_duplicates);
 		});
@@ -40,19 +40,18 @@ async function checkProductionDuplicates() {
 		console.log(`  Duplicate invoice entries: ${totalDuplicateInvoices}`);
 		console.log(`  Total value in duplicates: Rp ${totalDuplicateValue.toLocaleString('id-ID')}`);
 		console.log('\n❌ DUPLICATES ARE INFLATING THE TOTAL!\n');
-		
 	} else {
 		console.log('✅ No duplicates found\n');
 	}
 
 	// Check total count
-	const stats = await db.execute(sql`
+	const stats = (await db.execute(sql`
 		SELECT 
 			COUNT(*) as total_invoices,
 			COUNT(DISTINCT invoice_number) as unique_invoices,
 			SUM(CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(20, 2))) as total_value
 		FROM invoices
-	`) as any;
+	`)) as any;
 
 	console.log('📊 Summary:');
 	console.log(`  Total invoice rows: ${stats[0].total_invoices}`);

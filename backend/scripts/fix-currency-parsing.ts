@@ -9,7 +9,7 @@ async function fixCurrencyParsing() {
 
 		// Show current (wrong) stats
 		console.log('📊 Current Stats (with wrong parsing):');
-		const currentStats = await db.execute(sql`SELECT * FROM stats WHERE id = 1`) as any;
+		const currentStats = (await db.execute(sql`SELECT * FROM stats WHERE id = 1`)) as any;
 		if (currentStats.length > 0) {
 			console.log('  Total Value:', Number(currentStats[0].total_value).toLocaleString('id-ID'));
 		}
@@ -24,8 +24,8 @@ async function fixCurrencyParsing() {
 		// Show fixed stats
 		console.log('\n✅ Migration completed!\n');
 		console.log('📊 Fixed Stats (with correct parsing):');
-		const fixedStats = await db.execute(sql`SELECT * FROM stats WHERE id = 1`) as any;
-		
+		const fixedStats = (await db.execute(sql`SELECT * FROM stats WHERE id = 1`)) as any;
+
 		if (fixedStats.length > 0) {
 			const stats = fixedStats[0];
 			console.log('  Total Invoices:', stats.total_invoices);
@@ -37,15 +37,10 @@ async function fixCurrencyParsing() {
 
 		// Test the parsing function
 		console.log('\n🧪 Testing parse_indonesian_currency function:');
-		const tests = [
-			'4.000.000,00',
-			'1.234.567.890,50',
-			'500.000,00',
-			'99,99'
-		];
+		const tests = ['4.000.000,00', '1.234.567.890,50', '500.000,00', '99,99'];
 
 		for (const test of tests) {
-			const result = await db.execute(sql.raw(`SELECT parse_indonesian_currency('${test}') as parsed`)) as any;
+			const result = (await db.execute(sql.raw(`SELECT parse_indonesian_currency('${test}') as parsed`))) as any;
 			console.log(`  "${test}" → ${Number(result[0].parsed).toLocaleString('id-ID')}`);
 		}
 

@@ -12,9 +12,11 @@
 ### Database
 
 - **`scripts/run-stats-migration.ts`** - Run stats table migration and triggers
+
   ```bash
   bun run scripts/run-stats-migration.ts
   ```
+
   Use this to set up the stats caching system on a new database.
 
 - **`scripts/fix-currency-parsing.ts`** - Fix Indonesian currency format parsing bug

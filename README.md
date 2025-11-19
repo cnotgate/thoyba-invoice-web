@@ -1,6 +1,6 @@
 # Invoice Management System
 
-Modern invoice tracking and management system with admin dashboard.
+Modern, fast, and secure invoice tracking and management system with admin dashboard.
 
 ## 🚀 Quick Start
 
@@ -16,241 +16,269 @@ deploy.bat
 
 Access the application at: **http://localhost:8600**
 
+**Default Admin Credentials:**
+- Username: `admin`
+- Password: `admin123`
+
+> ⚠️ Change the default password immediately after first login!
+
+---
+
 ## 📚 Documentation
 
-- **[README-MODERN.md](README-MODERN.md)** - Complete documentation (start here!)
-- **[QUICK-SETUP.md](QUICK-SETUP.md)** - 5-minute setup guide
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture with diagrams
+- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Complete technical documentation, architecture, API reference, and deployment guide
+
+---
 
 ## 🎯 Features
 
 ✅ **Public Invoice Form** - Anyone can submit invoices  
 ✅ **Admin Dashboard** - Manage all invoices with authentication  
-✅ **Search & Filter** - Find invoices quickly  
+✅ **Search & Filter** - Find invoices quickly by number, supplier, status  
 ✅ **Payment Tracking** - Mark invoices as paid/unpaid  
-✅ **Dark Mode** - Easy on the eyes  
-✅ **Responsive Design** - Works on all devices  
-✅ **Type-Safe** - Full TypeScript support
+✅ **Supplier Management** - Add and manage suppliers  
+✅ **User Management** - Create and manage admin users  
+✅ **Dark Mode** - Easy on the eyes 🌙  
+✅ **Responsive Design** - Works on all devices 📱  
+✅ **Type-Safe** - Full TypeScript support  
+✅ **High Performance** - Stats caching with 10-20x faster dashboard  
+✅ **Auto-sync** - Real-time stats updates with PostgreSQL triggers  
+✅ **Indonesian Currency Support** - Proper handling of "4.000.000,00" format  
+
+---
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-
 - **SolidJS** - Reactive UI framework (faster than React)
 - **TypeScript** - Type safety
 - **TailwindCSS** - Modern styling
 - **Vite** - Lightning-fast builds
 
 ### Backend
-
 - **Bun** - Ultra-fast JavaScript runtime (3-4x faster than Node.js)
 - **Hono** - Lightweight web framework
-- **PostgreSQL** - Reliable relational database
+- **PostgreSQL** - Reliable relational database with stats caching
 - **Drizzle ORM** - Type-safe database queries
 - **JWT** - Secure authentication
 
 ### Infrastructure
+- **Docker & Docker Compose** - Containerization
+- **Nginx** - Reverse proxy and load balancing
+- **SSL/TLS** - HTTPS support via Let's Encrypt
 
-- **Docker** - Containerized deployment
-- **Nginx** - Reverse proxy
-- **Docker Compose** - Multi-container orchestration
+---
+
+## ⚡ Quick Setup (5 Minutes)
+
+### Prerequisites
+
+- ✅ **Docker Desktop** installed and running
+- ✅ **Git** (if cloning from repository)
+- ✅ Command line access
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/cnotgate/thoyba-invoice-web.git
+cd thoyba-invoice-web
+```
+
+### Step 2: Create Environment File
+
+```bash
+# Windows
+copy .env.example .env
+
+# Linux/Mac
+cp .env.example .env
+```
+
+Edit `.env` and set a secure JWT secret:
+
+```env
+JWT_SECRET=your-super-secret-key-here-change-this
+POSTGRES_PASSWORD=your-secure-db-password
+```
+
+> 💡 Generate a secure key: `openssl rand -base64 32`
+
+### Step 3: Deploy
+
+**Windows:**
+```cmd
+deploy.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Step 4: Access the Application
+
+- **Frontend:** http://localhost:8600
+- **API:** http://localhost:8600/api
+- **Health Check:** http://localhost:8600/health
+
+**Login with default credentials:**
+- Username: `admin`
+- Password: `admin123`
+
+---
+
+## 💻 Development
+
+### Backend Development
+
+```bash
+cd backend
+bun install
+bun run dev  # Runs on http://localhost:3001
+```
+
+### Frontend Development
+
+```bash
+cd frontend
+npm install
+npm run dev  # Runs on http://localhost:3000
+```
+
+### Useful Scripts
+
+```bash
+cd backend
+
+# Run migrations
+bun run migrate
+
+# Seed database
+bun run scripts/seed.ts
+
+# Import legacy data
+bun run scripts/import-legacy-invoices.ts
+
+# Force refresh stats cache
+bun run scripts/force-update-stats.ts
+
+# Check for duplicates
+bun run scripts/check-production-duplicates.ts
+```
+
+---
+
+## 🚀 Production Deployment
+
+### Quick Deploy to VPS
+
+```bash
+# 1. On local machine - push to GitHub
+git push origin master
+
+# 2. On VPS - install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# 3. Clone and deploy
+cd /var/www
+sudo git clone https://github.com/cnotgate/thoyba-invoice-web.git
+cd thoyba-invoice-web
+sudo cp .env.example .env
+sudo nano .env  # Edit JWT_SECRET and passwords
+sudo docker compose up -d --build
+sleep 30
+sudo docker compose exec backend bun run scripts/run-stats-migration.ts
+
+# 4. Setup Nginx reverse proxy and SSL
+# See DOCUMENTATION.md for complete instructions
+```
+
+For complete production deployment guide, see [DOCUMENTATION.md](DOCUMENTATION.md).
+
+---
 
 ## 📁 Project Structure
 
 ```
 invoice-web/
-├── backend/         # Bun + Hono backend
-├── frontend/        # SolidJS frontend
-├── nginx/           # Nginx configuration
-├── legacy/              # Original system files (archived)
-├── deploy.bat    # Windows deployment
-├── deploy.sh     # Linux/Mac deployment
-└── docker compose.yml
+├── backend/                 # Backend API (Bun + Hono)
+│   ├── src/
+│   │   ├── index.ts        # Main entry point
+│   │   ├── db/             # Database layer
+│   │   ├── routes/         # API endpoints
+│   │   └── middleware/     # Auth middleware
+│   └── scripts/            # Utility scripts
+│
+├── frontend/               # Frontend UI (SolidJS)
+│   ├── src/
+│   │   ├── routes/         # Page components
+│   │   ├── components/     # Reusable components
+│   │   ├── stores/         # State management
+│   │   └── services/       # API calls
+│   └── package.json
+│
+├── nginx/                  # Nginx configuration
+├── docker-compose.yml      # Docker orchestration
+├── deploy.bat             # Windows deployment
+├── deploy.sh              # Linux/Mac deployment
+├── README.md              # This file
+└── DOCUMENTATION.md       # Complete technical docs
 ```
 
-## 🔐 Admin Credentials
+---
 
-On first startup, an admin user is automatically created with a **secure auto-generated password**.
-
-**To get your admin credentials:**
-
-```bash
-# Docker deployment
-docker compose exec backend cat ADMIN_CREDENTIALS.txt
-
-# Or copy to host
-docker compose cp backend:/app/ADMIN_CREDENTIALS.txt ./
-```
-
-> ⚠️ **Important:** Save the password immediately and delete the credentials file after first login!
-
-## 📊 Performance
-
-- **Backend**: 3-4x faster than Node.js
-- **Frontend**: 60% less JavaScript bundle size
-- **Database**: PostgreSQL with connection pooling
-- **Build Time**: 2-3x faster with Bun
-
-## 🗂️ Legacy System
-
-The original system (vanilla JS + Node.js + json-server) has been moved to the `legacy/` directory.
-
-See [legacy/LEGACY-INFO.md](legacy/LEGACY-INFO.md) for more information.
-
-## 🚢 Deployment
-
-### Development Mode
-
-```bash
-# Backend (with hot reload)
-cd backend
-bun install
-bun run dev
-
-# Frontend (with hot reload)
-cd frontend
-npm install
-npm run dev
-```
-
-### Production Mode (Docker)
-
-```bash
-# One command deployment
-deploy.bat   # Windows
-./deploy.sh  # Linux/Mac
-
-# Or manually
-docker compose -f docker compose.yml up --build -d
-```
-
-## 📝 Common Commands
-
-```bash
-# View logs
-docker compose -f docker compose.yml logs -f
-
-# Stop containers
-docker compose -f docker compose.yml down
-
-# Restart containers
-docker compose -f docker compose.yml restart
-
-# Database migrations
-cd backend
-bun run db:migrate
-
-# Seed database
-bun run db:seed
-```
-
-## � Port Architecture
-
-The application uses a layered port architecture:
-
-```
-External (Server Host)
-    ↓
-  Port 80/443 (Host Nginx) → Reverse proxy with SSL
-    ↓
-  Port 8600 (Docker Nginx) → Internal routing container
-    ↓
-    ├─→ Port 3000 (Frontend Container) → SolidJS app
-    └─→ Port 3001 (Backend Container) → Hono API
-         ↓
-       Port 5432 (Postgres Container) → Database
-```
-
-**Important for Production:**
-
-- Only expose port **8600** on your server
-- Host nginx should **only proxy to port 8600**
-- The nginx container (8600) handles all internal routing:
-  - Serves frontend (SolidJS SPA)
-  - Proxies `/api/*` to backend:3001
-  - Proxies `/health` to backend:3001
-- Ports 3000, 3001, and 5432 remain **internal to Docker network**
-
-**Example host nginx configuration:**
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:8600;  # Only this!
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-## �🆘 Troubleshooting
+## 🔧 Troubleshooting
 
 ### Port Already in Use
 
 ```bash
-# Check what's using port 8600
+# Windows
 netstat -ano | findstr :8600
+taskkill /PID <PID> /F
 
-# Stop existing containers
-docker compose -f docker compose.yml down
+# Linux/Mac
+lsof -ti:8600 | xargs kill -9
 ```
 
 ### Database Connection Issues
 
 ```bash
-# Check if PostgreSQL is running
-docker ps
-
-# View database logs
-docker logs invoice-postgres
+docker compose logs db
+docker compose restart db
 ```
 
-### Frontend Build Errors
+### Stats Not Updating
 
 ```bash
-# Clear cache and rebuild
-cd frontend
-rm -rf node_modules dist
-npm install
-npm run build
+docker compose exec backend bun run scripts/force-update-stats.ts
 ```
 
-## 🔗 API Endpoints
-
-### Public Endpoints
-
-- `POST /api/invoices` - Create invoice
-- `GET /api/suppliers/list` - Get suppliers
-
-### Protected Endpoints (require JWT)
-
-- `GET /api/invoices` - Get all invoices
-- `GET /api/invoices/paginated` - Get paginated invoices with stats
-- `PATCH /api/invoices/:id` - Update invoice
-- `DELETE /api/invoices/:id` - Delete invoice
-
-See [README-MODERN.md](README-MODERN.md) for complete API documentation.
-
-## 🤝 Contributing
-
-This is a modernized invoice management system. For questions or issues:
-
-1. Check the documentation in [README-MODERN.md](README-MODERN.md)
-2. Review [ARCHITECTURE.md](ARCHITECTURE.md) for system design
-3. See [COMPARISON.md](COMPARISON.md) for legacy vs modern differences
-
-## 📄 License
-
-This project is for internal use.
+For more troubleshooting tips, see [DOCUMENTATION.md](DOCUMENTATION.md).
 
 ---
 
-**Quick Links:**
+## ⚠️ Important Notes
 
-- [Complete Documentation](README-MODERN.md)
-- [Quick Setup Guide](QUICK-SETUP.md)
-- [System Architecture](ARCHITECTURE.md)
-- [Legacy System Info](legacy/LEGACY-INFO.md)
+- **Performance:** Stats caching provides 10-20x faster dashboard loading
+- **Currency:** Indonesian format (4.000.000,00) is properly supported
+- **Security:** Change default passwords immediately after deployment
+- **Backup:** Regular database backups recommended
+
+---
+
+## 📝 License
+
+MIT License - Feel free to use this project for personal or commercial purposes.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please fork the repository and submit a Pull Request.
+
+---
+
+**Built with ❤️ using modern web technologies**

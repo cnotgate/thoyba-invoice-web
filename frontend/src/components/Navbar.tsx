@@ -1,4 +1,5 @@
 import { Component, Show } from 'solid-js';
+import { A } from '@solidjs/router';
 import { useTheme } from '../stores/themeStore';
 
 const Navbar: Component<{ title?: string }> = (props) => {
@@ -12,11 +13,22 @@ const Navbar: Component<{ title?: string }> = (props) => {
 						{props.title || 'CV. Amlaza Baraka'}
 					</h1>
 
-					<button
-						onClick={toggleTheme}
-						class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-						title="Toggle theme"
-					>
+					<div class="flex items-center gap-4">
+						<A
+							href="/docs"
+							class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2"
+						>
+							<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+							</svg>
+							<span class="hidden sm:inline">Docs</span>
+						</A>
+
+						<button
+							onClick={toggleTheme}
+							class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+							title="Toggle theme"
+						>
 						<Show
 							when={isDark()}
 							fallback={
@@ -40,6 +52,7 @@ const Navbar: Component<{ title?: string }> = (props) => {
 							</svg>
 						</Show>
 					</button>
+					</div>
 				</div>
 			</div>
 		</nav>

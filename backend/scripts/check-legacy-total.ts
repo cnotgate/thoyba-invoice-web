@@ -20,7 +20,7 @@ async function checkLegacyTotal() {
 
 	// Read legacy db.json
 	const legacyPath = path.join(__dirname, '../../legacy/backend/db.json');
-	
+
 	if (!fs.existsSync(legacyPath)) {
 		console.error('❌ Legacy db.json not found at:', legacyPath);
 		process.exit(1);
@@ -86,7 +86,7 @@ async function checkLegacyTotal() {
 	// Check for duplicates in legacy
 	const invoiceNumbers = new Set<string>();
 	const duplicates: string[] = [];
-	
+
 	db.invoices.forEach((invoice) => {
 		if (invoiceNumbers.has(invoice.invoiceNumber)) {
 			duplicates.push(invoice.invoiceNumber);

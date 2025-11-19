@@ -25,8 +25,8 @@ async function forceUpdateStats() {
 	console.log('✅ Stats table force updated!');
 
 	// Show updated stats
-	const updated = await db.execute(sql`SELECT * FROM stats WHERE id = 1`) as any;
-	
+	const updated = (await db.execute(sql`SELECT * FROM stats WHERE id = 1`)) as any;
+
 	console.log('\n📊 Updated Stats:');
 	console.log('  Total Invoices:', updated[0].total_invoices);
 	console.log('  Paid Invoices:', updated[0].paid_invoices);

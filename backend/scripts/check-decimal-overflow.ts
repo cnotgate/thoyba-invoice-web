@@ -5,7 +5,7 @@ async function checkDecimalOverflow() {
 	console.log('=== Checking for DECIMAL Overflow Issues ===\n');
 
 	// Check with DECIMAL(15,2) (current - MAX: 999,999,999,999.99)
-	const withLimit = await db.execute(sql`
+	const withLimit = (await db.execute(sql`
 		SELECT 
 			COUNT(*) as count,
 			SUM(
@@ -14,7 +14,7 @@ async function checkDecimalOverflow() {
 				)
 			) as sum_with_limit
 		FROM invoices
-	`) as any;
+	`)) as any;
 
 	console.log('📊 With DECIMAL(15, 2) - Current Implementation:');
 	console.log('  Count:', withLimit[0].count);
@@ -22,7 +22,7 @@ async function checkDecimalOverflow() {
 	console.log('  Max allowed: 999,999,999,999.99 (~999 miliar)\n');
 
 	// Check with DECIMAL(20,2) (larger - MAX: 999,999,999,999,999.99)
-	const withoutLimit = await db.execute(sql`
+	const withoutLimit = (await db.execute(sql`
 		SELECT 
 			COUNT(*) as count,
 			SUM(
@@ -31,7 +31,7 @@ async function checkDecimalOverflow() {
 				)
 			) as sum_without_limit
 		FROM invoices
-	`) as any;
+	`)) as any;
 
 	console.log('📊 With DECIMAL(20, 2) - Larger Precision:');
 	console.log('  Count:', withoutLimit[0].count);
@@ -39,7 +39,7 @@ async function checkDecimalOverflow() {
 	console.log('  Max allowed: 999,999,999,999,999.99 (~999 triliun)\n');
 
 	// Check for individual invoices that might overflow
-	const largeValues = await db.execute(sql`
+	const largeValues = (await db.execute(sql`
 		SELECT 
 			invoice_number,
 			total,
@@ -48,7 +48,7 @@ async function checkDecimalOverflow() {
 		WHERE CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(20, 2)) > 999999999999.99
 		ORDER BY CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(20, 2)) DESC
 		LIMIT 10
-	`) as any;
+	`)) as any;
 
 	if (largeValues.length > 0) {
 		console.log('⚠️  Found invoices EXCEEDING DECIMAL(15,2) limit (>999 billion):');
