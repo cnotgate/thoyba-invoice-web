@@ -450,6 +450,40 @@ sudo docker compose down
 sudo docker compose up -d --build
 ```
 
+### 🗑️ Reset Database (Delete All Data)
+
+To completely wipe the database and start fresh:
+
+```bash
+cd /var/www/thoyba-invoice-web
+
+# Stop all containers
+sudo docker compose down
+
+# Delete the PostgreSQL volume (this removes ALL database data)
+sudo docker volume rm thoyba-invoice-web_postgres-data
+
+# Or if the volume name is different, list volumes first:
+sudo docker volume ls
+# Then remove: sudo docker volume rm <volume-name>
+
+# Start fresh with new migration
+sudo docker compose up -d --build
+
+# The database will be recreated automatically with:
+# - Fresh schema from migrations
+# - New admin user with auto-generated password
+# - No invoices (unless you import legacy data)
+```
+
+**⚠️ WARNING:** This will permanently delete ALL data including:
+- All invoices
+- All users
+- All suppliers
+- All settings
+
+Make sure to backup first if you need the data!
+
 ### 📊 Database Backup
 
 ```bash
