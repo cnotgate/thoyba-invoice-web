@@ -136,13 +136,15 @@ export default function Suppliers() {
 						Total: {filteredSuppliers().length} supplier{filteredSuppliers().length !== 1 ? 's' : ''}
 					</p>
 				</div>
-				<button
-					onClick={() => setShowAddModal(true)}
-					class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm hover:shadow-md w-full sm:w-auto"
-				>
-					<BsPlus class="w-5 h-5 flex-shrink-0" />
-					<span>Tambah Supplier</span>
-				</button>
+				<div class="flex justify-end">
+					<button
+						onClick={() => setShowAddModal(true)}
+						class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+					>
+						<BsPlus class="w-5 h-5 flex-shrink-0" />
+						<span>Tambah Supplier</span>
+					</button>
+				</div>
 			</div>
 
 			{/* Search Bar */}
