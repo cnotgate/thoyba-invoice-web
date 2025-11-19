@@ -18,6 +18,71 @@ function generatePassword(length: number = 16): string {
 	return password;
 }
 
+// Convert legacy date format to ISO format
+function convertLegacyDate(legacyDate: string): string | null {
+	if (!legacyDate) return null;
+	
+	// If already ISO format (YYYY-MM-DD), return as-is
+	if (/^\d{4}-\d{2}-\d{2}$/.test(legacyDate)) {
+		return legacyDate;
+	}
+	
+	// Indonesian month names mapping
+	const monthMap: Record<string, string> = {
+		'Januari': '01', 'Februari': '02', 'Maret': '03', 'April': '04',
+		'Mei': '05', 'Juni': '06', 'Juli': '07', 'Agustus': '08',
+		'September': '09', 'Oktober': '10', 'November': '11', 'Desember': '12'
+	};
+	
+	// Try parsing "DD Month YYYY" format (e.g., "17 Januari 2024")
+	const match = legacyDate.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+	if (match) {
+		const day = match[1].padStart(2, '0');
+		const month = monthMap[match[2]];
+		const year = match[3];
+		if (month) {
+			return `${year}-${month}-${day}`;
+		}
+	}
+	
+	// Try parsing "DD/MM/YYYY" format
+	const ddmmyyyy = legacyDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+	if (ddmmyyyy) {
+		const day = ddmmyyyy[1].padStart(2, '0');
+		const month = ddmmyyyy[2].padStart(2, '0');
+		const year = ddmmyyyy[3];
+		return `${year}-${month}-${day}`;
+	}
+	
+	// Fallback to current date
+	return new Date().toISOString().split('T')[0];
+}
+
+// Convert legacy timestamp to ISO timestamp
+function convertLegacyTimestamp(legacyTimestamp: string): Date {
+	if (!legacyTimestamp) return new Date();
+	
+	// Try parsing "DD/MM/YYYY HH:mm:ss" format
+	const match = legacyTimestamp.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/);
+	if (match) {
+		const day = parseInt(match[1]);
+		const month = parseInt(match[2]) - 1; // Month is 0-indexed in JS
+		const year = parseInt(match[3]);
+		const hour = parseInt(match[4]);
+		const minute = parseInt(match[5]);
+		const second = parseInt(match[6]);
+		return new Date(year, month, day, hour, minute, second);
+	}
+	
+	// Try parsing as ISO string
+	const parsed = new Date(legacyTimestamp);
+	if (!isNaN(parsed.getTime())) {
+		return parsed;
+	}
+	
+	return new Date();
+}
+
 // Real supplier names from legacy database
 const supplierNames = [
 	'Cv Sukses Mandiri',
@@ -166,19 +231,21 @@ Generated: ${new Date().toISOString()}
 				
 				let importedCount = 0;
 				let errorCount = 0;
+				const errorTypes: Record<string, number> = {};
+				const sampleErrors: string[] = [];
 				
 				for (const invoice of legacyInvoices) {
 					try {
 						await db.insert(invoices).values({
 							supplier: invoice.supplier || 'Unknown',
 							branch: invoice.branch || 'Kuripan',
-							date: invoice.date || new Date().toISOString().split('T')[0],
+							date: convertLegacyDate(invoice.date) || new Date().toISOString().split('T')[0],
 							invoiceNumber: invoice.invoiceNumber || `LEGACY-${Date.now()}`,
 							total: invoice.total || '0',
 							description: invoice.description || null,
 							paid: invoice.paid || false,
-							paidDate: invoice.paidDate || null,
-							timestamp: invoice.timestamp ? new Date(invoice.timestamp) : new Date(),
+							paidDate: convertLegacyDate(invoice.paymentDate || invoice.paidDate),
+							timestamp: convertLegacyTimestamp(invoice.timestamp),
 						});
 						importedCount++;
 						
@@ -188,16 +255,31 @@ Generated: ${new Date().toISOString()}
 						}
 					} catch (error: any) {
 						errorCount++;
-						// Skip duplicate or invalid entries
-						if (errorCount <= 5) {
-							console.warn(`   Warning: Failed to import invoice ${invoice.invoiceNumber}: ${error.message}`);
+						
+						// Track error types
+						const errorKey = error.code || error.message?.substring(0, 50) || 'Unknown';
+						errorTypes[errorKey] = (errorTypes[errorKey] || 0) + 1;
+						
+						// Collect first 5 sample errors with details
+						if (sampleErrors.length < 5) {
+							sampleErrors.push(
+								`Invoice #${invoice.invoiceNumber || 'N/A'} (${invoice.supplier || 'Unknown'}): ${error.message}`
+							);
 						}
 					}
 				}
 				
 				console.log(`✅ Imported ${importedCount} legacy invoices`);
 				if (errorCount > 0) {
-					console.log(`⚠️  Skipped ${errorCount} invoices due to errors`);
+					console.log(`⚠️  Skipped ${errorCount} invoices due to errors\n`);
+					console.log('Error breakdown:');
+					for (const [errorType, count] of Object.entries(errorTypes)) {
+						console.log(`   - ${errorType}: ${count} invoices`);
+					}
+					if (sampleErrors.length > 0) {
+						console.log('\nSample errors:');
+						sampleErrors.forEach((err, idx) => console.log(`   ${idx + 1}. ${err}`));
+					}
 				}
 			} else {
 				console.log('No invoices found in legacy database');
