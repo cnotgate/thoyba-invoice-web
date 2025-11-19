@@ -82,8 +82,18 @@ Generated: ${new Date().toISOString()}
 		
 		// Start the application
 		console.log('🚀 Starting application...');
-		const app = await import('../src/index');
-		console.log(`✅ Server running on port ${app.default.port || 3001}`);
+		
+		// Import and start Bun server
+		const { default: server } = await import('../src/index');
+		const port = server.port || 3001;
+		
+		// Start Bun HTTP server
+		Bun.serve({
+			port: port,
+			fetch: server.fetch,
+		});
+		
+		console.log(`✅ Server running on port ${port}`);
 		
 	} catch (error) {
 		console.error('❌ Startup failed:', error);
