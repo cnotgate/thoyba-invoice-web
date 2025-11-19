@@ -19,7 +19,7 @@ function generatePassword(length: number = 16): string {
 }
 
 // Convert legacy date format to ISO format
-function convertLegacyDate(legacyDate: string): string {
+function convertLegacyDate(legacyDate: string, timestampForYearInference?: string): string {
 	if (!legacyDate || legacyDate.trim() === '') {
 		return new Date().toISOString().split('T')[0];
 	}
@@ -75,9 +75,17 @@ function convertLegacyDate(legacyDate: string): string {
 	if (ddmm) {
 		const day = ddmm[1].padStart(2, '0');
 		const month = ddmm[2].padStart(2, '0');
-		const currentYear = new Date().getFullYear();
-		// Use current year as default
-		return `${currentYear}-${month}-${day}`;
+		
+		// Infer year from timestamp if available, otherwise use current year
+		let year = new Date().getFullYear();
+		if (timestampForYearInference) {
+			const timestampDate = new Date(convertLegacyTimestamp(timestampForYearInference));
+			if (!isNaN(timestampDate.getTime())) {
+				year = timestampDate.getFullYear();
+			}
+		}
+		
+		return `${year}-${month}-${day}`;
 	}
 	
 	// Try parsing ISO datetime format (YYYY-MM-DDTHH:mm:ss)
@@ -280,15 +288,16 @@ Generated: ${new Date().toISOString()}
 				
 				for (const invoice of legacyInvoices) {
 					try {
-						// Convert paidDate only if it exists
+						// Convert dates, passing timestamp for year inference when date format lacks year
+						const invoiceDate = convertLegacyDate(invoice.date, invoice.timestamp);
 						const paidDate = (invoice.paymentDate || invoice.paidDate) 
-							? convertLegacyDate(invoice.paymentDate || invoice.paidDate)
+							? convertLegacyDate(invoice.paymentDate || invoice.paidDate, invoice.timestamp)
 							: null;
 						
 						await db.insert(invoices).values({
 							supplier: invoice.supplier || 'Unknown',
 							branch: invoice.branch || 'Kuripan',
-							date: convertLegacyDate(invoice.date),
+							date: invoiceDate,
 							invoiceNumber: invoice.invoiceNumber || `LEGACY-${Date.now()}`,
 							total: invoice.total || '0',
 							description: invoice.description || null,
