@@ -11,18 +11,18 @@
 
 ### Database
 
-- **`run-stats-migration.ts`** - Run stats table migration and triggers
+- **`scripts/run-stats-migration.ts`** - Run stats table migration and triggers
   ```bash
-  bun run run-stats-migration.ts
+  bun run scripts/run-stats-migration.ts
   ```
   Use this to set up the stats caching system on a new database.
 
 ### Monitoring
 
-- **`show-stats.ts`** - Display current cached statistics
+- **`scripts/show-stats.ts`** - Display current cached statistics
 
   ```bash
-  bun run show-stats.ts
+  bun run scripts/show-stats.ts
   ```
 
   Useful for verifying stats table data and troubleshooting.
