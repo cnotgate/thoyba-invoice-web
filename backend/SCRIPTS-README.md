@@ -27,6 +27,14 @@
 
   Useful for verifying stats table data and troubleshooting.
 
+- **`scripts/force-update-stats.ts`** - Force update stats table to sync with invoice data
+
+  ```bash
+  bun run scripts/force-update-stats.ts
+  ```
+
+  Use this when stats values look incorrect or after manual database changes.
+
 - **`test-connection.ts`** - Test database connection
   ```bash
   bun run test-connection.ts

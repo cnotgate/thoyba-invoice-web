@@ -611,6 +611,9 @@ sudo docker compose up -d
 # View stats
 sudo docker compose exec backend bun run scripts/show-stats.ts
 
+# Force update stats (if values look wrong)
+sudo docker compose exec backend bun run scripts/force-update-stats.ts
+
 # Backup database
 sudo docker compose exec postgres pg_dump -U postgres invoice_db > backup.sql
 
@@ -686,6 +689,26 @@ sudo certbot renew
 # Check nginx SSL config
 sudo nginx -t
 ```
+
+### Issue: Stats showing incorrect/outdated values
+
+**Solution:**
+
+```bash
+# Force update stats table to sync with actual invoice data
+sudo docker compose exec backend bun run scripts/force-update-stats.ts
+
+# Verify updated stats
+sudo docker compose exec backend bun run scripts/show-stats.ts
+
+# If stats are still wrong, check invoice data integrity
+sudo docker compose exec postgres psql -U postgres invoice_db -c "SELECT COUNT(*), SUM(CAST(regexp_replace(total, '[^0-9.]', '', 'g') AS DECIMAL(15,2))) FROM invoices;"
+```
+
+**Common causes:**
+- Stats table not updated after manual database changes
+- Triggers not fired during bulk imports
+- Database restored from backup without re-running stats migration
 
 ---
 
