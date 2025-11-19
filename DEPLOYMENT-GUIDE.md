@@ -361,14 +361,73 @@ sudo docker compose logs -f postgres
    - Open browser: `http://your-domain.com`
    - You should see the invoice input form
 
-5. **Test Login:**
+5. **Get Admin Credentials:**
+
+   ```bash
+   # View auto-generated admin password
+   sudo docker compose exec backend cat ADMIN_CREDENTIALS.txt
+   
+   # Or copy to your local machine
+   sudo docker compose cp backend:/app/ADMIN_CREDENTIALS.txt ./
+   ```
+
+   ⚠️ **IMPORTANT:**
+   - Save the password in a secure password manager
+   - Delete the credentials file after saving: `sudo docker compose exec backend rm ADMIN_CREDENTIALS.txt`
+   - Change the password after first login
+
+6. **Test Login:**
 
    - Navigate to: `http://your-domain.com/login`
-   - Login with: `admin` / `admin123`
+   - Login with the credentials from ADMIN_CREDENTIALS.txt
 
-6. **Test HTTPS (if configured):**
+7. **Test HTTPS (if configured):**
    - Open: `https://your-domain.com`
    - Verify SSL certificate in browser
+
+---
+
+## 8.1. Optional: Import Legacy Invoice Data
+
+If you have historical invoice data from the legacy system (5,000+ invoices), you can import it:
+
+### Option 1: Copy and Import (Recommended)
+
+```bash
+# From your local machine, copy legacy database
+scp legacy/backend/db.json user@your-server:/tmp/legacy-db.json
+
+# On server, copy into backend container
+cd /var/www/thoyba-invoice-web
+sudo docker compose cp /tmp/legacy-db.json backend:/app/legacy-db.json
+
+# Run import (this will take 5-10 minutes for large datasets)
+sudo docker compose exec backend sh -c 'cd /app && bun run scripts/seed.ts'
+
+# Check import results
+sudo docker compose exec postgres psql -U postgres invoice_db -c "SELECT COUNT(*) FROM invoices;"
+
+# Clean up
+sudo docker compose exec backend rm /app/legacy-db.json
+rm /tmp/legacy-db.json
+```
+
+### Option 2: Direct Database Restore
+
+If you have a PostgreSQL dump:
+
+```bash
+# Export from old system
+pg_dump -U postgres old_invoice_db > legacy_backup.sql
+
+# Copy to server
+scp legacy_backup.sql user@your-server:/tmp/
+
+# Import to new system
+sudo docker compose exec -T postgres psql -U postgres invoice_db < /tmp/legacy_backup.sql
+```
+
+📄 **For detailed import instructions, see:** `backend/LEGACY-IMPORT-GUIDE.md`
 
 ---
 
@@ -500,12 +559,14 @@ sudo nginx -t
 1. **Change default passwords immediately**
 2. **Keep system updated:** `sudo apt update && sudo apt upgrade`
 3. **Enable firewall:**
+
    ```bash
    sudo ufw allow 22/tcp
    sudo ufw allow 80/tcp
    sudo ufw allow 443/tcp
    sudo ufw enable
    ```
+
 4. **Set up fail2ban** to prevent brute force attacks
 5. **Regular backups** of database
 6. **Monitor logs** for suspicious activity
@@ -524,7 +585,7 @@ If you encounter issues:
 
 ---
 
-## ✅ Deployment Complete!
+## ✅ Deployment Complete
 
 Your invoice management system should now be live at:
 
