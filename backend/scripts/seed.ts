@@ -59,6 +59,27 @@ function convertLegacyDate(legacyDate: string): string {
 		return `${year}-${month}-${day}`;
 	}
 	
+	// Try parsing "DD/MM/YY" format with 2-digit year (e.g., "21/5/24")
+	const ddmmyy = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+	if (ddmmyy) {
+		const day = ddmmyy[1].padStart(2, '0');
+		const month = ddmmyy[2].padStart(2, '0');
+		const yearShort = parseInt(ddmmyy[3]);
+		// Assume 20xx for years 00-99 (adjust if needed for different century)
+		const year = yearShort >= 0 && yearShort <= 99 ? `20${ddmmyy[3].padStart(2, '0')}` : ddmmyy[3];
+		return `${year}-${month}-${day}`;
+	}
+	
+	// Try parsing "DD/MM" format without year (e.g., "21/5", "30/5")
+	const ddmm = cleaned.match(/^(\d{1,2})\/(\d{1,2})$/);
+	if (ddmm) {
+		const day = ddmm[1].padStart(2, '0');
+		const month = ddmm[2].padStart(2, '0');
+		const currentYear = new Date().getFullYear();
+		// Use current year as default
+		return `${currentYear}-${month}-${day}`;
+	}
+	
 	// Try parsing ISO datetime format (YYYY-MM-DDTHH:mm:ss)
 	if (cleaned.includes('T')) {
 		const isoDate = new Date(cleaned);
