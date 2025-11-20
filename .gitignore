@@ -62,7 +62,7 @@ deploy-migration-docker.*
 sync-data-to-vps.*
 sync-data-to-vps.ps1
 fix-stats-error.*
-fix-stats-after-import.*
+# fix-stats-after-import.* - Now included in repo for VPS recovery
 
 # Source data (sensitive)
 source-of-truth.csv
