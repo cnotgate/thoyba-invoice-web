@@ -26,9 +26,28 @@ git pull origin master
 
 ### 3. Run the Fix Script
 
+**Inside Docker container:**
+
 ```bash
-cd backend
+# Find the backend container name
+docker ps
+
+# Execute the script inside the container
+docker exec -it invoice-web-backend-1 bun run scripts/fix-total-values.ts
+```
+
+**Alternative (if you need to enter the container):**
+
+```bash
+# Enter the backend container
+docker exec -it invoice-web-backend-1 sh
+
+# Inside container, run the script
+cd /app
 bun run scripts/fix-total-values.ts
+
+# Exit container
+exit
 ```
 
 ### Expected Output:
@@ -72,20 +91,38 @@ Sample invoices AFTER fix:
 
 ## Verification Queries
 
-After running the script, verify the fix:
+After running the script, verify the fix **inside the database container**:
 
 ```bash
-# Check for any remaining suspicious totals
-psql -U postgres -d invoice_db -c "SELECT COUNT(*) FROM invoices WHERE total > 1000000000"
-# Should return: 0
+# Enter the database container
+docker exec -it invoice-web-db-1 psql -U postgres -d invoice_db
 
-# Check total value
-psql -U postgres -d invoice_db -c "SELECT COUNT(*), SUM(total) FROM invoices"
-# Should return: 5112 | ~27 billion (not 404 billion)
+# Inside psql, run these queries:
 
-# Check specific invoice
-psql -U postgres -d invoice_db -c "SELECT invoice_number, total FROM invoices WHERE invoice_number = '110103-SI-25-047927'"
-# Should return: 56489562.78 (not 5648956278.00)
+-- Check for any remaining suspicious totals
+SELECT COUNT(*) FROM invoices WHERE total > 1000000000;
+-- Should return: 0
+
+-- Check total value
+SELECT COUNT(*), SUM(total) FROM invoices;
+-- Should return: 5112 | ~27 billion (not 404 billion)
+
+-- Check specific invoice
+SELECT invoice_number, total FROM invoices WHERE invoice_number = '110103-SI-25-047927';
+-- Should return: 56489562.78 (not 5648956278.00)
+
+-- Exit psql
+\q
+```
+
+**One-liner verification (outside container):**
+
+```bash
+# Check total
+docker exec -it invoice-web-db-1 psql -U postgres -d invoice_db -c "SELECT COUNT(*), SUM(total) FROM invoices"
+
+# Check suspicious invoices
+docker exec -it invoice-web-db-1 psql -U postgres -d invoice_db -c "SELECT COUNT(*) FROM invoices WHERE total > 1000000000"
 ```
 
 ---
@@ -110,14 +147,14 @@ psql -U postgres -d invoice_db -c "SELECT invoice_number, total FROM invoices WH
 
 ## If Something Goes Wrong
 
-1. **Backup before running:**
+1. **Backup before running (inside database container):**
    ```bash
-   pg_dump -U postgres -d invoice_db > /root/backup_before_fix.sql
+   docker exec -it invoice-web-db-1 pg_dump -U postgres -d invoice_db > /root/backup_before_fix.sql
    ```
 
 2. **Restore if needed:**
    ```bash
-   psql -U postgres -d invoice_db < /root/backup_before_fix.sql
+   docker exec -i invoice-web-db-1 psql -U postgres -d invoice_db < /root/backup_before_fix.sql
    ```
 
 ---
