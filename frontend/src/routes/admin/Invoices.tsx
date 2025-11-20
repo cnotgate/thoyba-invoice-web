@@ -20,6 +20,7 @@ export default function Invoices() {
     const [selectedInvoice, setSelectedInvoice] = createSignal<Invoice | null>(null);
     const [paymentDate, setPaymentDate] = createSignal('');
     const [showTimestamp, setShowTimestamp] = createSignal(false);
+    const [totalInputFocused, setTotalInputFocused] = createSignal(false);
     const [editForm, setEditForm] = createSignal({
         supplier: '',
         branch: 'Kuripan' as 'Kuripan' | 'Cempaka' | 'Gatot',
@@ -842,13 +843,14 @@ export default function Invoices() {
                                             inputmode="numeric"
                                             required
                                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            value={editForm().total}
+                                            value={totalInputFocused() ? editForm().total.replace(/\D/g, '') : editForm().total}
                                             onInput={(e) => {
                                                 // Allow only digits while typing - NO formatting
                                                 const rawValue = e.currentTarget.value.replace(/\D/g, '');
                                                 setEditForm({ ...editForm(), total: rawValue });
                                             }}
                                             onBlur={() => {
+                                                setTotalInputFocused(false);
                                                 // Format with thousands separator ONLY on blur
                                                 const rawValue = editForm().total.replace(/\D/g, '');
                                                 if (rawValue) {
@@ -857,6 +859,7 @@ export default function Invoices() {
                                                 }
                                             }}
                                             onFocus={() => {
+                                                setTotalInputFocused(true);
                                                 // Remove formatting on focus - show only raw digits
                                                 const rawValue = editForm().total.replace(/\D/g, '');
                                                 setEditForm({ ...editForm(), total: rawValue });
