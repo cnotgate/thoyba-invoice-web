@@ -92,37 +92,50 @@ docker exec invoice-postgres pg_dump \
   > backup_before_sync_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-### Step 5: Create Stats Table FIRST (IMPORTANT!)
+### Step 5: Disable Triggers & Truncate (IMPORTANT!)
 
 ```bash
-# Pull latest migrations
-cd /path/to/invoice-web
-git pull origin master
+# Drop ALL triggers before import to avoid errors
+docker exec invoice-postgres psql -U postgres -d invoice_db -c "
+DROP TRIGGER IF EXISTS trigger_stats_insert ON invoices;
+DROP TRIGGER IF EXISTS trigger_stats_update ON invoices;
+DROP TRIGGER IF EXISTS trigger_stats_delete ON invoices;
+"
 
-# Create stats table SEBELUM import data
-docker exec -i invoice-postgres psql -U postgres -d invoice_db \
-  < backend/drizzle/migrations/0002_create_stats_table.sql
-```
-
-**⚠️ PENTING:** Table `stats` HARUS ada sebelum import! Trigger akan error kalau stats belum dibuat.
-
-### Step 6: Truncate & Import
-
-```bash
 # Truncate table invoices
 docker exec invoice-postgres psql \
   -U postgres \
   -d invoice_db \
   -c "TRUNCATE TABLE invoices RESTART IDENTITY CASCADE;"
+```
 
-# Import data (sekarang aman karena stats sudah ada)
+**⚠️ PENTING:** Triggers HARUS di-drop dulu! Kalau tidak, trigger akan fired saat import dan error karena stats belum ada.
+
+### Step 6: Import Data
+
+```bash
+# Import data (aman karena triggers sudah di-drop)
 docker exec -i invoice-postgres psql \
   -U postgres \
   -d invoice_db \
   < invoices_export.sql
 ```
 
-### Step 7: Verify
+### Step 7: Create Stats Table & Recreate Triggers
+
+```bash
+# Pull latest migrations
+cd /path/to/invoice-web
+git pull origin master
+
+# Create stats table dan recreate triggers
+docker exec -i invoice-postgres psql -U postgres -d invoice_db \
+  < backend/drizzle/migrations/0002_create_stats_table.sql
+```
+
+**Note:** Jika muncul error `duplicate key`, itu normal (stats row sudah ada). Yang penting table dan triggers created.
+
+### Step 8: Verify
 
 ```bash
 # Check count dan total
@@ -131,7 +144,7 @@ docker exec invoice-postgres psql \
   -d invoice_db \
   -c "SELECT COUNT(*), SUM(total) FROM invoices;"
 
-# Check stats table populated
+# Check stats table populated (should match invoice count/total)
 docker exec invoice-postgres psql \
   -U postgres \
   -d invoice_db \
@@ -142,6 +155,12 @@ docker exec invoice-postgres psql \
   -U postgres \
   -d invoice_db \
   -c "SELECT * FROM invoices ORDER BY id DESC LIMIT 5;"
+
+# Check triggers recreated
+docker exec invoice-postgres psql \
+  -U postgres \
+  -d invoice_db \
+  -c "\dS+ invoices" | grep -i trigger
 ```
 
 ---
@@ -278,11 +297,23 @@ curl http://localhost:8600/api/invoices | jq '.invoices | length'
 
 ## ⚠️ Troubleshooting
 
-### Error: "relation 'stats' does not exist"
+### Error: "relation 'stats' does not exist" during import
 
-**Cause:** Table `stats` belum dibuat SEBELUM import data.
+**Cause:** Triggers fired during import, tapi stats table belum ada.
 
 **Quick Fix (jika sudah terlanjur import):**
+
+**Option A - Automated Script (EASIEST):**
+```bash
+# Linux/Mac
+chmod +x fix-stats-after-import.sh
+./fix-stats-after-import.sh
+
+# Windows
+fix-stats-after-import.bat
+```
+
+**Option B - Manual Steps:**
 ```bash
 cd /path/to/invoice-web
 
@@ -293,23 +324,25 @@ git pull origin master
 docker exec -i invoice-postgres psql -U postgres -d invoice_db \
   < backend/drizzle/migrations/0002_create_stats_table.sql
 
-# Verify stats created and populated
+# Populate stats from existing invoices
+docker exec invoice-postgres psql -U postgres -d invoice_db -c "
+DELETE FROM stats WHERE id = 1;
+INSERT INTO stats (id, total_invoices, paid_invoices, unpaid_invoices, total_value)
+SELECT 
+    1,
+    COUNT(*)::INTEGER,
+    COUNT(CASE WHEN paid = true THEN 1 END)::INTEGER,
+    COUNT(CASE WHEN paid = false THEN 1 END)::INTEGER,
+    COALESCE(SUM(total), 0)
+FROM invoices;
+"
+
+# Verify
 docker exec invoice-postgres psql -U postgres -d invoice_db \
   -c "SELECT * FROM stats;"
 ```
 
-**Note:** Jika muncul `ERROR: duplicate key value violates unique constraint "stats_pkey"`:
-- ✅ **Ini NORMAL!** Artinya stats row sudah ada dari sebelumnya
-- ✅ Table dan triggers sudah created successfully
-- ✅ Aman untuk lanjut import data
-
-**Prevention:** Selalu create stats table SEBELUM import data (lihat Step 5).
-
-**Alternative - Restart backend:**
-```bash
-# Backend akan auto-run migrations saat startup
-docker-compose restart backend
-```
+**Prevention:** Selalu **drop triggers dulu** sebelum import (lihat Step 5), lalu recreate setelah import selesai.
 
 ### Error: "TRUNCATE TABLE requires permission"
 
