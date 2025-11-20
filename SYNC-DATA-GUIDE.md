@@ -298,6 +298,11 @@ docker exec invoice-postgres psql -U postgres -d invoice_db \
   -c "SELECT * FROM stats;"
 ```
 
+**Note:** Jika muncul `ERROR: duplicate key value violates unique constraint "stats_pkey"`:
+- ✅ **Ini NORMAL!** Artinya stats row sudah ada dari sebelumnya
+- ✅ Table dan triggers sudah created successfully
+- ✅ Aman untuk lanjut import data
+
 **Prevention:** Selalu create stats table SEBELUM import data (lihat Step 5).
 
 **Alternative - Restart backend:**
