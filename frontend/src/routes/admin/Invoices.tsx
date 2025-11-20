@@ -3,7 +3,7 @@ import { api } from '../../services/api';
 import type { Invoice } from '../../types';
 import { BsSearch, BsArrowRepeat, BsTrash, BsXCircle, BsPencil } from 'solid-icons/bs';
 import Toast from '../../components/Toast';
-import { formatWithThousandsSeparator, handleCurrencyInput, preventNonDigitInput, toDecimalString } from '../../utils/currency';
+import { formatWithThousandsSeparator, toDecimalString } from '../../utils/currency';
 
 export default function Invoices() {
     const [allInvoices, setAllInvoices] = createSignal<Invoice[]>([]);
@@ -842,13 +842,23 @@ export default function Invoices() {
                                             inputmode="numeric"
                                             required
                                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            value={formatWithThousandsSeparator(editForm().total)}
-                                            onInput={(e) => handleCurrencyInput(
-                                                e,
-                                                formatWithThousandsSeparator(editForm().total),
-                                                (value) => setEditForm({ ...editForm(), total: value })
-                                            )}
-                                            onKeyDown={preventNonDigitInput}
+                                            value={editForm().total}
+                                            onInput={(e) => {
+                                                // Only allow digits
+                                                const value = e.currentTarget.value.replace(/\D/g, '');
+                                                setEditForm({ ...editForm(), total: value });
+                                            }}
+                                            onBlur={(e) => {
+                                                // Format on blur
+                                                const value = e.currentTarget.value.replace(/\D/g, '');
+                                                if (value) {
+                                                    e.currentTarget.value = formatWithThousandsSeparator(value);
+                                                }
+                                            }}
+                                            onFocus={(e) => {
+                                                // Remove format on focus
+                                                e.currentTarget.value = editForm().total;
+                                            }}
                                         />
                                     </div>
 
