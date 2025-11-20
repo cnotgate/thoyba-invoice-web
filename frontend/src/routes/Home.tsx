@@ -5,6 +5,7 @@ import SupplierDropdown from '../components/SupplierDropdown';
 import Toast from '../components/Toast';
 import { api } from '../services/api';
 import type { InvoiceFormData } from '../types';
+import { formatWithThousandsSeparator, handleCurrencyInput, preventNonDigitInput, toDecimalString } from '../utils/currency';
 
 const Home: Component = () => {
 	const navigate = useNavigate();
@@ -27,7 +28,13 @@ const Home: Component = () => {
 		setIsSubmitting(true);
 
 		try {
-			const result = await api.createInvoice(formData());
+			// Convert total to decimal string before submitting
+			const submitData = {
+				...formData(),
+				total: toDecimalString(formData().total)
+			};
+
+			const result = await api.createInvoice(submitData);
 
 			if (result.success) {
 				setToastType('success');
@@ -147,17 +154,21 @@ const Home: Component = () => {
 						<div>
 							<label class="label" for="total">Total (Rp) *</label>
 							<input
-								type="number"
+								type="text"
+								inputmode="numeric"
 								id="total"
-								value={formData().total}
-								onInput={(e) => setFormData({ ...formData(), total: e.currentTarget.value })}
+								value={formatWithThousandsSeparator(formData().total)}
+								onInput={(e) => handleCurrencyInput(
+									e,
+									formatWithThousandsSeparator(formData().total),
+									(value) => setFormData({ ...formData(), total: value })
+								)}
+								onKeyDown={preventNonDigitInput}
 								required
 								class="input"
-								placeholder="Contoh: 6000000"
+								placeholder="Contoh: 6.000.000"
 							/>
-						</div>
-
-						<div>
+						</div>						<div>
 							<label class="label" for="description">Keterangan</label>
 							<textarea
 								id="description"
