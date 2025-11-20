@@ -16,36 +16,38 @@ Migration ini akan:
 
 #### 1️⃣ Backup Database Dulu!
 ```bash
-# Dari server production
-pg_dump -U postgres -d invoice_db > backup_before_migration_$(date +%Y%m%d_%H%M%S).sql
+# Backup via docker postgres container
+docker exec invoice-postgres pg_dump -U postgres invoice_db > backup_before_migration_$(date +%Y%m%d_%H%M%S).sql
 
-# Atau via docker
-docker exec invoice-db pg_dump -U postgres invoice_db > backup_before_migration_$(date +%Y%m%d_%H%M%S).sql
+# Atau masuk ke container dan backup
+docker exec -it invoice-postgres bash
+pg_dump -U postgres invoice_db > /tmp/backup.sql
+exit
+docker cp invoice-postgres:/tmp/backup.sql ./backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-#### 2️⃣ Copy Script ke Production Server
-```bash
-# Dari local ke server
-scp backend/migrate-simple.ts user@server:/path/to/invoice-web/backend/
-```
-
-#### 3️⃣ Set Environment Production
+#### 2️⃣ Pull Latest Code ke Production Server
 ```bash
 # SSH ke server
 ssh user@server
 
-# Masuk ke folder backend
-cd /path/to/invoice-web/backend
+# Masuk ke folder project
+cd /path/to/invoice-web
 
-# Pastikan .env production sudah benar
-cat .env
-# DATABASE_URL=postgresql://user:pass@localhost:5432/invoice_db
+# Pull latest changes
+git pull origin master
 ```
 
-#### 4️⃣ Test Connection Dulu
+#### 3️⃣ Copy migrate-simple.ts ke Backend Container
 ```bash
-# Test koneksi database
-bun run test-connection.ts
+# Copy script ke dalam running container
+docker cp backend/migrate-simple.ts invoice-backend:/app/migrate-simple.ts
+```
+
+#### 4️⃣ Run Migration dari Container
+```bash
+# Execute migration script di dalam backend container
+docker exec -it invoice-backend bun run migrate-simple.ts
 
 # Expected output:
 # ✅ Database connection successful!
@@ -117,7 +119,51 @@ psql -U postgres -d invoice_db -c "SELECT * FROM invoices ORDER BY id DESC LIMIT
 
 ---
 
-## Option 2: Manual SQL Migration (Alternatif)
+---
+
+## Option 2: Automated Script untuk Docker (PALING MUDAH)
+
+### Untuk Linux/Mac:
+```bash
+# 1. SSH ke server
+ssh user@server
+
+# 2. Masuk ke folder project
+cd /path/to/invoice-web
+
+# 3. Pull latest code
+git pull origin master
+
+# 4. Jalankan script
+chmod +x deploy-migration-docker.sh
+./deploy-migration-docker.sh
+```
+
+### Untuk Windows:
+```cmd
+REM 1. Masuk ke folder project
+cd C:\path\to\invoice-web
+
+REM 2. Pull latest code
+git pull origin master
+
+REM 3. Jalankan script
+deploy-migration-docker.bat
+```
+
+Script akan otomatis:
+- ✅ Backup database
+- ✅ Check current state
+- ✅ Copy migration script ke container
+- ✅ Stop backend
+- ✅ Run migration
+- ✅ Verify hasil
+- ✅ Start backend lagi
+- ✅ Health check
+
+---
+
+## Option 3: Manual SQL Migration (Alternatif)
 
 Jika tidak bisa pakai Bun/TypeScript di production:
 
