@@ -657,11 +657,10 @@ export default function Invoices() {
                                                 </div>
                                             </div>
                                             <div class="space-y-1 mb-3">
-                                                <Show when={showTimestamp()}>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-500">
-                                                        <span class="font-medium">Timestamp:</span> {formatTimestamp(invoice.timestamp)}
-                                                    </p>
-                                                </Show>
+                                                {/* Timestamp - always show on mobile */}
+                                                <p class="text-xs text-gray-500 dark:text-gray-500">
+                                                    <span class="font-medium">Timestamp:</span> {formatTimestamp(invoice.timestamp)}
+                                                </p>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
                                                     <span class="font-medium">Tanggal:</span> {formatDate(invoice.date)}
                                                 </p>
