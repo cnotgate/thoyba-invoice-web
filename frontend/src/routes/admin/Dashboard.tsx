@@ -81,6 +81,21 @@ const Dashboard: Component = () => {
 		return dateStr;
 	};
 
+	const formatTimestamp = (timestampStr: string | null | undefined) => {
+		if (!timestampStr) return '-';
+		
+		const date = new Date(timestampStr);
+		if (isNaN(date.getTime())) return '-';
+		
+		return date.toLocaleString('id-ID', {
+			day: '2-digit',
+			month: 'short',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+	};
+
 	return (
 		<div class="space-y-6">
 			<div>
@@ -175,7 +190,10 @@ const Dashboard: Component = () => {
 										<thead class="bg-gray-50 dark:bg-gray-700">
 											<tr>
 												<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-													Tanggal
+													Timestamp
+												</th>
+												<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+													Tanggal Faktur
 												</th>
 												<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
 													Supplier
@@ -194,6 +212,9 @@ const Dashboard: Component = () => {
 										<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
 											{data().recent.map((invoice) => (
 												<tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+													<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+														{formatTimestamp(invoice.timestamp)}
+													</td>
 													<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
 														{formatDate(invoice.date || '')}
 													</td>
