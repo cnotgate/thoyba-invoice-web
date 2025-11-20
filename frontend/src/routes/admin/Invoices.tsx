@@ -843,25 +843,36 @@ export default function Invoices() {
                                             inputmode="numeric"
                                             required
                                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            value={totalInputFocused() ? editForm().total.replace(/\D/g, '') : editForm().total}
+                                            value={editForm().total}
                                             onInput={(e) => {
-                                                // Allow only digits while typing - NO formatting
-                                                const rawValue = e.currentTarget.value.replace(/\D/g, '');
+                                                // CRITICAL: Only strip non-digits, don't re-render while focused
+                                                const input = e.currentTarget;
+                                                const cursorPos = input.selectionStart || 0;
+                                                const rawValue = input.value.replace(/\D/g, '');
+                                                
+                                                // Update state without triggering re-render that moves cursor
                                                 setEditForm({ ...editForm(), total: rawValue });
+                                                
+                                                // Restore cursor position after React/Solid updates DOM
+                                                requestAnimationFrame(() => {
+                                                    if (input === document.activeElement) {
+                                                        input.setSelectionRange(cursorPos, cursorPos);
+                                                    }
+                                                });
                                             }}
-                                            onBlur={() => {
+                                            onBlur={(e) => {
                                                 setTotalInputFocused(false);
                                                 // Format with thousands separator ONLY on blur
-                                                const rawValue = editForm().total.replace(/\D/g, '');
+                                                const rawValue = e.currentTarget.value.replace(/\D/g, '');
                                                 if (rawValue) {
                                                     const formatted = formatWithThousandsSeparator(rawValue);
                                                     setEditForm({ ...editForm(), total: formatted });
                                                 }
                                             }}
-                                            onFocus={() => {
+                                            onFocus={(e) => {
                                                 setTotalInputFocused(true);
                                                 // Remove formatting on focus - show only raw digits
-                                                const rawValue = editForm().total.replace(/\D/g, '');
+                                                const rawValue = e.currentTarget.value.replace(/\D/g, '');
                                                 setEditForm({ ...editForm(), total: rawValue });
                                             }}
                                         />
