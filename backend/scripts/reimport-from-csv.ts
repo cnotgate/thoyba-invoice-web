@@ -80,12 +80,33 @@ function parseTimestamp(timestampStr: string): Date | null {
 function parseTotal(totalStr: string): string {
 	if (!totalStr) return '0';
 
-	// Remove "Rp", dots (thousands separator), commas (decimal separator), and spaces
+	// Remove "Rp" and spaces first
 	let cleaned = totalStr
 		.replace(/Rp/gi, '')
-		.replace(/\s+/g, '')
-		.replace(/\./g, '')
-		.replace(/,/g, '.');
+		.replace(/\s+/g, '');
+
+	// Detect format from the CSV:
+	// 1. " Rp 4.118.000,00 " - Indonesian with comma (dots=thousands, comma=decimal)
+	// 2. "165.522" - Plain with dots only (dots=thousands, no decimal)
+	// 3. " 56.489.562.78 " - Plain with dots (dots=thousands AND last .XX is decimal)
+	
+	if (cleaned.includes(',')) {
+		// Format 1: Indonesian with comma
+		// "4.118.000,00" → "4118000.00"
+		cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
+	} else if (/\.\d{2}$/.test(cleaned)) {
+		// Format 3: Ends with .XX (2 digits) - last dot is decimal
+		// "56.489.562.78" → "56489562.78"
+		// Split into parts: everything before last dot, and last 2 digits
+		const lastDotIndex = cleaned.lastIndexOf('.');
+		const integerPart = cleaned.substring(0, lastDotIndex).replace(/\./g, '');
+		const decimalPart = cleaned.substring(lastDotIndex + 1);
+		cleaned = integerPart + '.' + decimalPart;
+	} else {
+		// Format 2: Plain with dots as thousands only
+		// "165.522" → "165522"
+		cleaned = cleaned.replace(/\./g, '');
+	}
 
 	// Parse as float
 	const num = parseFloat(cleaned);
