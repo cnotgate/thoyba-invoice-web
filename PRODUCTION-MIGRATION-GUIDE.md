@@ -4,9 +4,29 @@
 
 Migration ini akan:
 - ✅ Convert kolom `total` dari VARCHAR(50) ke DECIMAL(15,2)
-- ✅ Convert semua 5,040 invoices ke format decimal
+- ✅ Convert semua invoices ke format decimal
 - ⚠️ **Downtime**: ~2-5 menit (tergantung jumlah data)
 - ⚠️ **Irreversible**: Sulit rollback setelah production user mulai input data baru
+
+## 🔧 Troubleshooting Error di VPS
+
+**Jika muncul error saat startup:**
+```
+PostgresError: column "total" cannot be cast automatically to type numeric
+hint: "You might need to specify \"USING total::numeric(15,2)\"."
+```
+
+**Penyebab:** Database belum di-migrate tapi backend sudah expect DECIMAL format.
+
+**Solusi:** Migration Drizzle sudah di-update dengan proper USING clause. Pull latest code dan restart:
+```bash
+cd /path/to/invoice-web
+git pull origin master
+docker-compose down
+docker-compose up -d
+```
+
+Migration akan run otomatis saat container startup via `scripts/start-with-migration.ts`.
 
 ---
 
