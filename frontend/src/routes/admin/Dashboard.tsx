@@ -37,11 +37,48 @@ const Dashboard: Component = () => {
 	};
 
 	const formatDate = (dateStr: string) => {
-		return new Date(dateStr).toLocaleDateString('id-ID', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		});
+		if (!dateStr) return 'Invalid Date';
+		
+		// Try parsing DD/MM/YYYY format (Indonesian format)
+		const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+		if (ddmmyyyyMatch) {
+			const [, day, month, year] = ddmmyyyyMatch;
+			const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+			if (!isNaN(date.getTime())) {
+				return date.toLocaleDateString('id-ID', {
+					day: '2-digit',
+					month: 'short',
+					year: 'numeric',
+				});
+			}
+		}
+		
+		// Try parsing YYYY-MM-DD format (ISO format)
+		const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+		if (isoMatch) {
+			const [, year, month, day] = isoMatch;
+			const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+			if (!isNaN(date.getTime())) {
+				return date.toLocaleDateString('id-ID', {
+					day: '2-digit',
+					month: 'short',
+					year: 'numeric',
+				});
+			}
+		}
+		
+		// Fallback: try native Date parsing
+		const date = new Date(dateStr);
+		if (!isNaN(date.getTime())) {
+			return date.toLocaleDateString('id-ID', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+			});
+		}
+		
+		// If all parsing fails, return the original string
+		return dateStr;
 	};
 
 	return (
@@ -158,7 +195,7 @@ const Dashboard: Component = () => {
 											{data().recent.map((invoice) => (
 												<tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
 													<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-														{formatDate(invoice.timestamp || '')}
+														{formatDate(invoice.date || '')}
 													</td>
 													<td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
 														{invoice.supplier}
