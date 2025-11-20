@@ -13,15 +13,16 @@
 		"db:import": "bun run scripts/import-legacy-invoices.ts"
 	},
 	"dependencies": {
-		"hono": "^4.0.0",
+		"@hono/node-server": "^1.12.0",
+		"csv-parse": "^6.1.0",
 		"drizzle-orm": "^0.33.0",
-		"postgres": "^3.4.4",
+		"hono": "^4.0.0",
 		"jose": "^5.2.0",
-		"@hono/node-server": "^1.12.0"
+		"postgres": "^3.4.4"
 	},
 	"devDependencies": {
+		"@types/node": "^20.0.0",
 		"bun-types": "latest",
-		"drizzle-kit": "^0.24.0",
-		"@types/node": "^20.0.0"
+		"drizzle-kit": "^0.24.0"
 	}
 }
