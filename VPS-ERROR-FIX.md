@@ -1,12 +1,14 @@
 # 🚨 Fix VPS Error: "column cannot be cast automatically"
 
 ## Error yang Muncul:
+
 ```
 PostgresError: column "total" cannot be cast automatically to type numeric
 hint: "You might need to specify \"USING total::numeric(15,2)\"."
 ```
 
 ## Penyebab:
+
 - Backend sudah update ke schema DECIMAL
 - Database di VPS masih pakai VARCHAR
 - Drizzle migration tidak bisa auto-convert
@@ -14,12 +16,14 @@ hint: "You might need to specify \"USING total::numeric(15,2)\"."
 ## ✅ Solusi Cepat (5 Menit):
 
 ### 1. Pull Latest Code
+
 ```bash
 cd /path/to/invoice-web
 git pull origin master
 ```
 
 **Perubahan yang di-pull:**
+
 - ✅ Migration file baru: `0001_alter_total_to_decimal.sql`
 - ✅ Migration file baru: `0002_create_stats_table.sql`
 - ✅ Dengan proper USING clause untuk convert data
@@ -27,12 +31,14 @@ git pull origin master
 - ✅ Create stats table dan triggers
 
 ### 2. Restart Container
+
 ```bash
 docker-compose down
 docker-compose up -d
 ```
 
 **Yang terjadi saat startup:**
+
 - Container backend akan run `scripts/start-with-migration.ts`
 - Migration Drizzle akan detect file baru
 - Execute ALTER TABLE dengan USING clause
@@ -40,11 +46,13 @@ docker-compose up -d
 - Backend start normal
 
 ### 3. Monitor Logs
+
 ```bash
 docker-compose logs -f backend
 ```
 
 **Expected output:**
+
 ```
 ✅ Running database migrations...
 ✅ Migration applied: 0001_alter_total_to_decimal
@@ -53,6 +61,7 @@ docker-compose logs -f backend
 ```
 
 ### 4. Verify
+
 ```bash
 # Check column type
 docker exec invoice-postgres psql -U postgres -d invoice_db -c "\d invoices"
@@ -70,6 +79,7 @@ docker exec invoice-postgres psql -U postgres -d invoice_db -c "SELECT SUM(total
 **Cause:** Table `stats` belum ada setelah import data.
 
 **Solution:**
+
 ```bash
 # Pull latest migrations
 cd /path/to/invoice-web
@@ -97,10 +107,10 @@ docker-compose stop backend
 docker exec -it invoice-postgres psql -U postgres -d invoice_db
 
 # 3. Execute untuk ALTER column:
-ALTER TABLE invoices 
-ALTER COLUMN total TYPE DECIMAL(15,2) 
+ALTER TABLE invoices
+ALTER COLUMN total TYPE DECIMAL(15,2)
 USING (
-  CASE 
+  CASE
     WHEN total ~ '^[0-9]+(\.[0-9]+)?$' THEN total::DECIMAL(15,2)
     ELSE (
       CAST(
@@ -135,21 +145,25 @@ docker-compose start backend
 ## ⚠️ Jika Masih Error:
 
 1. Check logs detail:
+
 ```bash
 docker-compose logs backend | grep -A 20 "error"
 ```
 
 2. Check database connection:
+
 ```bash
 docker exec invoice-backend bun run test-connection.ts
 ```
 
 3. Check migration status:
+
 ```bash
 docker exec invoice-postgres psql -U postgres -d invoice_db -c "SELECT * FROM drizzle.__drizzle_migrations;"
 ```
 
 4. Rollback jika perlu:
+
 ```bash
 # Restore dari backup
 docker-compose stop backend

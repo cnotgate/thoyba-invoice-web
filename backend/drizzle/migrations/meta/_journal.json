@@ -1,27 +1,27 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1763530116842,
-      "tag": "0000_good_amphibian",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1732070400000,
-      "tag": "0001_alter_total_to_decimal",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1732071000000,
-      "tag": "0002_create_stats_table",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1763530116842,
+			"tag": "0000_good_amphibian",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1732070400000,
+			"tag": "0001_alter_total_to_decimal",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1732071000000,
+			"tag": "0002_create_stats_table",
+			"breakpoints": true
+		}
+	]
 }

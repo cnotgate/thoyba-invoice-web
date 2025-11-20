@@ -304,6 +304,7 @@ curl http://localhost:8600/api/invoices | jq '.invoices | length'
 **Quick Fix (jika sudah terlanjur import):**
 
 **Option A - Automated Script (EASIEST):**
+
 ```bash
 # Linux/Mac
 chmod +x fix-stats-after-import.sh
@@ -314,6 +315,7 @@ fix-stats-after-import.bat
 ```
 
 **Option B - Manual Steps:**
+
 ```bash
 cd /path/to/invoice-web
 
@@ -328,7 +330,7 @@ docker exec -i invoice-postgres psql -U postgres -d invoice_db \
 docker exec invoice-postgres psql -U postgres -d invoice_db -c "
 DELETE FROM stats WHERE id = 1;
 INSERT INTO stats (id, total_invoices, paid_invoices, unpaid_invoices, total_value)
-SELECT 
+SELECT
     1,
     COUNT(*)::INTEGER,
     COUNT(CASE WHEN paid = true THEN 1 END)::INTEGER,
