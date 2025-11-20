@@ -25,16 +25,23 @@ Panduan untuk sinkronisasi data invoice dari database local ke VPS production.
 
 ## 🚀 Option 1: Export-Import Full Data (RECOMMENDED)
 
-### Step 1: Export dari Local
+### Step 1: Export dari Local (Non-Docker)
 
-```bash
+**Windows (PowerShell):**
+```powershell
 # Export hanya table invoices (data-only)
+pg_dump -U postgres -d invoice_db `
+  --table=invoices `
+  --data-only `
+  --column-inserts `
+  > invoices_export.sql
+```
+
+**Linux/Mac (jika local pakai Docker):**
+```bash
 docker exec invoice-postgres pg_dump \
-  -U postgres \
-  -d invoice_db \
-  --table=invoices \
-  --data-only \
-  --column-inserts \
+  -U postgres -d invoice_db \
+  --table=invoices --data-only --column-inserts \
   > invoices_export.sql
 ```
 
@@ -42,6 +49,16 @@ docker exec invoice-postgres pg_dump \
 
 ### Step 2: Verify Export
 
+**Windows:**
+```powershell
+# Count records
+(Get-Content invoices_export.sql | Select-String "INSERT INTO").Count
+
+# Check file size
+Get-Item invoices_export.sql | Select-Object Name, Length
+```
+
+**Linux/Mac:**
 ```bash
 # Count records
 grep -c "INSERT INTO" invoices_export.sql
@@ -110,24 +127,25 @@ docker exec invoice-postgres psql \
 
 ## 🤖 Option 2: Automated Script (EASIEST)
 
-### Linux/Mac:
+### Windows (Native PostgreSQL):
 
-```bash
+**PowerShell (RECOMMENDED):**
+```powershell
 # Edit configuration di script
-nano sync-data-to-vps.sh
+notepad sync-data-to-vps.ps1
 
 # Ubah:
-# VPS_HOST="your-vps-ip"
-# VPS_USER="your-ssh-user"
-# VPS_PATH="/path/to/invoice-web"
+# $LOCAL_USER = "postgres"
+# $LOCAL_DB = "invoice_db"
+# $VPS_HOST = "your-vps-ip"
+# $VPS_USER = "your-ssh-user"
+# $VPS_PATH = "/path/to/invoice-web"
 
 # Run script
-chmod +x sync-data-to-vps.sh
-./sync-data-to-vps.sh
+.\sync-data-to-vps.ps1
 ```
 
-### Windows:
-
+**CMD (Alternative):**
 ```cmd
 REM Edit configuration di script
 notepad sync-data-to-vps.bat
@@ -136,6 +154,23 @@ REM Run script
 sync-data-to-vps.bat
 
 REM Follow manual steps untuk transfer file
+```
+
+### Linux/Mac:
+
+```bash
+# Edit configuration di script
+nano sync-data-to-vps.sh
+
+# Set LOCAL_DOCKER=false untuk native PostgreSQL
+# Set LOCAL_DOCKER=true untuk Docker PostgreSQL
+# VPS_HOST="your-vps-ip"
+# VPS_USER="your-ssh-user"
+# VPS_PATH="/path/to/invoice-web"
+
+# Run script
+chmod +x sync-data-to-vps.sh
+./sync-data-to-vps.sh
 ```
 
 Script akan otomatis:

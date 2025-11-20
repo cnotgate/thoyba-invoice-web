@@ -60,6 +60,7 @@ COMPARISON.md
 deploy-migration-to-production.*
 deploy-migration-docker.*
 sync-data-to-vps.*
+sync-data-to-vps.ps1
 
 # Source data (sensitive)
 source-of-truth.csv
