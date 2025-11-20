@@ -92,7 +92,21 @@ docker exec invoice-postgres pg_dump \
   > backup_before_sync_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-### Step 5: Truncate & Import
+### Step 5: Create Stats Table FIRST (IMPORTANT!)
+
+```bash
+# Pull latest migrations
+cd /path/to/invoice-web
+git pull origin master
+
+# Create stats table SEBELUM import data
+docker exec -i invoice-postgres psql -U postgres -d invoice_db \
+  < backend/drizzle/migrations/0002_create_stats_table.sql
+```
+
+**⚠️ PENTING:** Table `stats` HARUS ada sebelum import! Trigger akan error kalau stats belum dibuat.
+
+### Step 6: Truncate & Import
 
 ```bash
 # Truncate table invoices
@@ -101,24 +115,14 @@ docker exec invoice-postgres psql \
   -d invoice_db \
   -c "TRUNCATE TABLE invoices RESTART IDENTITY CASCADE;"
 
-# Import data
+# Import data (sekarang aman karena stats sudah ada)
 docker exec -i invoice-postgres psql \
   -U postgres \
   -d invoice_db \
   < invoices_export.sql
 ```
 
-**⚠️ Note:** Jika muncul error `relation "stats" does not exist`:
-```bash
-# Restart container untuk run semua migrations
-docker-compose restart backend
-
-# Atau manual create stats table
-docker exec -i invoice-postgres psql -U postgres -d invoice_db \
-  < backend/drizzle/migrations/0002_create_stats_table.sql
-```
-
-### Step 6: Verify
+### Step 7: Verify
 
 ```bash
 # Check count dan total
@@ -126,6 +130,12 @@ docker exec invoice-postgres psql \
   -U postgres \
   -d invoice_db \
   -c "SELECT COUNT(*), SUM(total) FROM invoices;"
+
+# Check stats table populated
+docker exec invoice-postgres psql \
+  -U postgres \
+  -d invoice_db \
+  -c "SELECT * FROM stats;"
 
 # Check sample records
 docker exec invoice-postgres psql \
@@ -270,20 +280,30 @@ curl http://localhost:8600/api/invoices | jq '.invoices | length'
 
 ### Error: "relation 'stats' does not exist"
 
-**Cause:** Table `stats` belum dibuat di VPS.
+**Cause:** Table `stats` belum dibuat SEBELUM import data.
 
-**Solution:**
+**Quick Fix (jika sudah terlanjur import):**
 ```bash
-# Pull latest code (includes 0002_create_stats_table.sql migration)
 cd /path/to/invoice-web
+
+# Pull latest migrations
 git pull origin master
 
-# Restart backend untuk run migrations
-docker-compose restart backend
-
-# Atau manual run migration
+# Create stats table
 docker exec -i invoice-postgres psql -U postgres -d invoice_db \
   < backend/drizzle/migrations/0002_create_stats_table.sql
+
+# Verify stats created and populated
+docker exec invoice-postgres psql -U postgres -d invoice_db \
+  -c "SELECT * FROM stats;"
+```
+
+**Prevention:** Selalu create stats table SEBELUM import data (lihat Step 5).
+
+**Alternative - Restart backend:**
+```bash
+# Backend akan auto-run migrations saat startup
+docker-compose restart backend
 ```
 
 ### Error: "TRUNCATE TABLE requires permission"
