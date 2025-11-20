@@ -5,7 +5,7 @@ import SupplierDropdown from '../components/SupplierDropdown';
 import Toast from '../components/Toast';
 import { api } from '../services/api';
 import type { InvoiceFormData } from '../types';
-import { formatWithThousandsSeparator, handleCurrencyInput, preventNonDigitInput, toDecimalString } from '../utils/currency';
+import { formatWithThousandsSeparator, toDecimalString } from '../utils/currency';
 
 const Home: Component = () => {
 	const navigate = useNavigate();
@@ -157,16 +157,27 @@ const Home: Component = () => {
 								type="text"
 								inputmode="numeric"
 								id="total"
-								value={formatWithThousandsSeparator(formData().total)}
-								onInput={(e) => handleCurrencyInput(
-									e,
-									formatWithThousandsSeparator(formData().total),
-									(value) => setFormData({ ...formData(), total: value })
-								)}
-								onKeyDown={preventNonDigitInput}
+								value={formData().total}
+								onInput={(e) => {
+									// Allow only digits during typing
+									const value = e.currentTarget.value.replace(/\D/g, '');
+									setFormData({ ...formData(), total: value });
+								}}
+								onFocus={(e) => {
+									// Remove formatting when focused
+									const value = e.currentTarget.value.replace(/\D/g, '');
+									setFormData({ ...formData(), total: value });
+								}}
+								onBlur={(e) => {
+									// Format with thousands separator on blur
+									const value = e.currentTarget.value.replace(/\D/g, '');
+									if (value) {
+										setFormData({ ...formData(), total: formatWithThousandsSeparator(value) });
+									}
+								}}
 								required
 								class="input"
-								placeholder="Contoh: 6.000.000"
+								placeholder="Contoh: 6000000"
 							/>
 						</div>						<div>
 							<label class="label" for="description">Keterangan</label>
