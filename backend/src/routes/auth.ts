@@ -47,11 +47,11 @@ authRouter.post('/login', async (c) => {
 			token,
 			username: user.username,
 			role: user.role,
-			user: { 
-				id: user.id, 
-				username: user.username, 
+			user: {
+				id: user.id,
+				username: user.username,
 				role: user.role,
-				created_at: user.createdAt 
+				created_at: user.createdAt,
 			},
 		});
 	} catch (error) {

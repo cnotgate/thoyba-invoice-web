@@ -104,29 +104,45 @@ invoiceRouter.get('/paginated', authMiddleware, async (c) => {
 	}
 });
 
-// Protected: Get all invoices (for admin) - with optional pagination
+// Protected: Get all invoices (for admin) - with optional pagination, search, and filters
 invoiceRouter.get('/', authMiddleware, async (c) => {
 	try {
 		const limit = c.req.query('limit');
 		const offset = c.req.query('offset');
+		const search = c.req.query('search');
+		const status = c.req.query('status'); // 'paid', 'unpaid', or 'all'
 
-		// If pagination params provided, use them
-		if (limit || offset) {
-			const limitNum = parseInt(limit || '100');
-			const offsetNum = parseInt(offset || '0');
+		const limitNum = parseInt(limit || '100');
+		const offsetNum = parseInt(offset || '0');
 
-			const allInvoices = await db
-				.select()
-				.from(invoices)
-				.orderBy(desc(invoices.timestamp))
-				.limit(limitNum)
-				.offset(offsetNum);
+		// Build WHERE conditions
+		const conditions = [];
 
-			return c.json(allInvoices);
+		// Search filter (case-insensitive search in supplier and invoice number)
+		if (search && search.trim()) {
+			const searchTerm = search.trim().toLowerCase();
+			conditions.push(
+				sql`(LOWER(${invoices.supplier}) LIKE ${`%${searchTerm}%`} OR LOWER(${
+					invoices.invoiceNumber
+				}) LIKE ${`%${searchTerm}%`})`
+			);
 		}
 
-		// Otherwise return all (for backwards compatibility)
-		const allInvoices = await db.select().from(invoices).orderBy(desc(invoices.timestamp));
+		// Status filter
+		if (status === 'paid') {
+			conditions.push(eq(invoices.paid, true));
+		} else if (status === 'unpaid') {
+			conditions.push(eq(invoices.paid, false));
+		}
+
+		// Execute query with filters
+		let query = db.select().from(invoices);
+
+		if (conditions.length > 0) {
+			query = query.where(and(...conditions)) as any;
+		}
+
+		const allInvoices = await query.orderBy(desc(invoices.timestamp)).limit(limitNum).offset(offsetNum);
 
 		return c.json(allInvoices);
 	} catch (error) {

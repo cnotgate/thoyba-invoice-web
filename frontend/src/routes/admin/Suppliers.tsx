@@ -1,6 +1,7 @@
 import { createSignal, createEffect, For, Show } from 'solid-js';
 import { BsSearch, BsPlus, BsTrash, BsXCircle, BsPencil } from 'solid-icons/bs';
 import * as api from '../../services/api';
+import Toast from '../../components/Toast';
 
 interface Supplier {
 	id: number;
@@ -11,6 +12,16 @@ export default function Suppliers() {
 	const [suppliers, setSuppliers] = createSignal<Supplier[]>([]);
 	const [loading, setLoading] = createSignal(true);
 	const [searchQuery, setSearchQuery] = createSignal('');
+	const [showToast, setShowToast] = createSignal(false);
+	const [toastMessage, setToastMessage] = createSignal('');
+	const [toastType, setToastType] = createSignal<'success' | 'error'>('success');
+
+	// Toast helper
+	function triggerToast(message: string, type: 'success' | 'error') {
+		setToastMessage(message);
+		setToastType(type);
+		setShowToast(true);
+	}
 
 	// Add supplier modal
 	const [showAddModal, setShowAddModal] = createSignal(false);
@@ -33,7 +44,7 @@ export default function Suppliers() {
 			setSuppliers(data);
 		} catch (error) {
 			console.error('Failed to load suppliers:', error);
-			alert('Gagal memuat data suppliers!');
+			triggerToast('Gagal memuat data suppliers!', 'error');
 		} finally {
 			setLoading(false);
 		}
@@ -59,18 +70,18 @@ export default function Suppliers() {
 		const name = supplierName().trim();
 
 		if (!name) {
-			alert('Nama supplier tidak boleh kosong!');
+			triggerToast('Nama supplier tidak boleh kosong!', 'error');
 			return;
 		}
 
 		try {
 			await api.createSupplier(name);
-			alert('Supplier berhasil ditambahkan!');
+			triggerToast('Supplier berhasil ditambahkan!', 'success');
 			setShowAddModal(false);
 			setSupplierName('');
 			loadSuppliers();
 		} catch (error: any) {
-			alert(error.message || 'Gagal menambahkan supplier!');
+			triggerToast(error.message || 'Gagal menambahkan supplier!', 'error');
 		}
 	}
 
@@ -88,19 +99,19 @@ export default function Suppliers() {
 
 		const name = editSupplierName().trim();
 		if (!name) {
-			alert('Nama supplier tidak boleh kosong!');
+			triggerToast('Nama supplier tidak boleh kosong!', 'error');
 			return;
 		}
 
 		try {
 			await api.updateSupplier(supplier.id, name);
-			alert('Supplier berhasil diupdate!');
+			triggerToast('Supplier berhasil diupdate!', 'success');
 			setShowEditModal(false);
 			setEditingSupplier(null);
 			setEditSupplierName('');
 			loadSuppliers();
 		} catch (error: any) {
-			alert(error.message || 'Gagal mengupdate supplier!');
+			triggerToast(error.message || 'Gagal mengupdate supplier!', 'error');
 		}
 	}
 
@@ -111,12 +122,12 @@ export default function Suppliers() {
 
 		try {
 			await api.deleteSupplier(supplier.id);
-			alert('Supplier berhasil dihapus!');
+			triggerToast('Supplier berhasil dihapus!', 'success');
 			setShowDeleteModal(false);
 			setSelectedSupplier(null);
 			loadSuppliers();
 		} catch (error) {
-			alert('Gagal menghapus supplier!');
+			triggerToast('Gagal menghapus supplier!', 'error');
 		}
 	}
 
@@ -418,6 +429,15 @@ export default function Suppliers() {
 						</div>
 					</div>
 				</div>
+			</Show>
+
+			{/* Toast Notification */}
+			<Show when={showToast()}>
+				<Toast
+					message={toastMessage()}
+					type={toastType()}
+					onClose={() => setShowToast(false)}
+				/>
 			</Show>
 		</div>
 	);

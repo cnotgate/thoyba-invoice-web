@@ -1,6 +1,7 @@
 import { createSignal, createEffect, For, Show } from 'solid-js';
 import { BsSearch, BsPersonPlus, BsTrash, BsShieldCheck, BsXCircle } from 'solid-icons/bs';
 import * as api from '../../services/api';
+import Toast from '../../components/Toast';
 
 interface User {
 	id: number;
@@ -13,6 +14,16 @@ export default function Users() {
 	const [users, setUsers] = createSignal<User[]>([]);
 	const [loading, setLoading] = createSignal(true);
 	const [searchQuery, setSearchQuery] = createSignal('');
+	const [showToast, setShowToast] = createSignal(false);
+	const [toastMessage, setToastMessage] = createSignal('');
+	const [toastType, setToastType] = createSignal<'success' | 'error'>('success');
+
+	// Toast helper
+	function triggerToast(message: string, type: 'success' | 'error') {
+		setToastMessage(message);
+		setToastType(type);
+		setShowToast(true);
+	}
 
 	// Add user modal
 	const [showAddModal, setShowAddModal] = createSignal(false);
@@ -35,7 +46,7 @@ export default function Users() {
 			setUsers(data);
 		} catch (error) {
 			console.error('Failed to load users:', error);
-			alert('Gagal memuat data users!');
+			triggerToast('Gagal memuat data users!', 'error');
 		} finally {
 			setLoading(false);
 		}
@@ -62,12 +73,12 @@ export default function Users() {
 		const form = addForm();
 
 		if (form.password !== form.confirmPassword) {
-			alert('Password tidak cocok!');
+			triggerToast('Password tidak cocok!', 'error');
 			return;
 		}
 
 		if (form.password.length < 6) {
-			alert('Password minimal 6 karakter!');
+			triggerToast('Password minimal 6 karakter!', 'error');
 			return;
 		}
 
@@ -78,7 +89,7 @@ export default function Users() {
 				role: form.role
 			});
 
-			alert('User berhasil ditambahkan!');
+			triggerToast('User berhasil ditambahkan!', 'success');
 			setShowAddModal(false);
 			setAddForm({
 				username: '',
@@ -88,7 +99,7 @@ export default function Users() {
 			});
 			loadUsers();
 		} catch (error: any) {
-			alert(error.message || 'Gagal menambahkan user!');
+			triggerToast(error.message || 'Gagal menambahkan user!', 'error');
 		}
 	}
 
@@ -99,12 +110,12 @@ export default function Users() {
 
 		try {
 			await api.deleteUser(user.id);
-			alert('User berhasil dihapus!');
+			triggerToast('User berhasil dihapus!', 'success');
 			setShowDeleteModal(false);
 			setSelectedUser(null);
 			loadUsers();
 		} catch (error) {
-			alert('Gagal menghapus user!');
+			triggerToast('Gagal menghapus user!', 'error');
 		}
 	}
 
@@ -202,8 +213,8 @@ export default function Users() {
 											</td>
 											<td class="px-6 py-4 whitespace-nowrap">
 												<span class={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
-														? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-														: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+													? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+													: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
 													}`}>
 													<BsShieldCheck class="w-3.5 h-3.5" />
 													{user.role === 'admin' ? 'Administrator' : 'User'}
@@ -240,8 +251,8 @@ export default function Users() {
 											{user.username}
 										</p>
 										<span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mt-2 ${user.role === 'admin'
-												? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-												: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+											? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+											: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
 											}`}>
 											<BsShieldCheck class="w-3.5 h-3.5" />
 											{user.role === 'admin' ? 'Admin' : 'User'}
@@ -399,6 +410,15 @@ export default function Users() {
 						</div>
 					</div>
 				</div>
+			</Show>
+
+			{/* Toast Notification */}
+			<Show when={showToast()}>
+				<Toast
+					message={toastMessage()}
+					type={toastType()}
+					onClose={() => setShowToast(false)}
+				/>
 			</Show>
 		</div>
 	);

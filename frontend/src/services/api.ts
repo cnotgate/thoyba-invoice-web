@@ -60,10 +60,17 @@ export const api = {
 		return response.json();
 	},
 
-	async getInvoices(limit?: number, offset?: number): Promise<Invoice[]> {
+	async getInvoices(
+		limit?: number,
+		offset?: number,
+		search?: string,
+		status?: 'all' | 'paid' | 'unpaid'
+	): Promise<Invoice[]> {
 		const params = new URLSearchParams();
 		if (limit !== undefined) params.append('limit', limit.toString());
 		if (offset !== undefined) params.append('offset', offset.toString());
+		if (search && search.trim()) params.append('search', search.trim());
+		if (status && status !== 'all') params.append('status', status);
 
 		const url = `${API_BASE}/invoices${params.toString() ? '?' + params.toString() : ''}`;
 		const response = await fetch(url, {

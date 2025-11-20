@@ -12,9 +12,7 @@ export default function Invoices() {
     const [searchQuery, setSearchQuery] = createSignal('');
     const [statusFilter, setStatusFilter] = createSignal<'all' | 'paid' | 'unpaid'>('all');
     const [sortBy, setSortBy] = createSignal<'timestamp-desc' | 'timestamp-asc' | 'date-desc' | 'date-asc' | 'supplier-asc' | 'supplier-desc' | 'status'>('timestamp-desc');
-    const [currentBatch, setCurrentBatch] = createSignal(1);
-    const [hasMore, setHasMore] = createSignal(true); // For display pagination
-    const [hasMoreServer, setHasMoreServer] = createSignal(true); // For server data
+    const [hasMoreServer, setHasMoreServer] = createSignal(true);
     const [showPaymentModal, setShowPaymentModal] = createSignal(false);
     const [showDeleteModal, setShowDeleteModal] = createSignal(false);
     const [showEditModal, setShowEditModal] = createSignal(false);
@@ -28,8 +26,7 @@ export default function Invoices() {
         total: '',
         description: ''
     });
-    const BATCH_SIZE = 50; // Reduced for faster initial load
-    const [totalLoaded, setTotalLoaded] = createSignal(0);
+    const BATCH_SIZE = 50;
 
     // Store reference to scroll container to avoid repeated DOM queries
     let scrollContainerRef: Element | null = null;
@@ -45,44 +42,57 @@ export default function Invoices() {
         setShowToast(true);
     }
 
-    // Load initial invoices with pagination
-    createEffect(async () => {
+    // Load invoices with server-side filtering
+    async function loadInvoices(reset = false) {
         try {
-            setLoading(true);
-            // Load initial batch
-            const invoices = await api.getInvoices(BATCH_SIZE, 0);
-            setAllInvoices(invoices);
-            setTotalLoaded(invoices.length);
-            loadMoreInvoices(true);
-            // Check if there might be more data on server
+            if (reset) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
+            const offset = reset ? 0 : allInvoices().length;
+            const invoices = await api.getInvoices(
+                BATCH_SIZE,
+                offset,
+                searchQuery(),
+                statusFilter()
+            );
+
+            if (reset) {
+                setAllInvoices(invoices);
+                setDisplayedInvoices(invoices);
+            } else {
+                setAllInvoices([...allInvoices(), ...invoices]);
+                setDisplayedInvoices([...displayedInvoices(), ...invoices]);
+            }
+
             setHasMoreServer(invoices.length === BATCH_SIZE);
         } catch (error) {
             console.error('Error loading invoices:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
+    }
+
+    // Load invoices on mount and when search/filter changes
+    createEffect(() => {
+        // Track dependencies to make this effect reactive
+        searchQuery();
+        statusFilter();
+
+        // Debounce to avoid excessive API calls while typing
+        const timeoutId = setTimeout(() => {
+            loadInvoices(true);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
     });
 
-    // Filter and sort invoices
+    // Apply client-side sorting only (filtering is done on server)
     const filteredInvoices = () => {
-        let filtered = [...allInvoices()];
-
-        // Apply search filter
-        const query = searchQuery().toLowerCase();
-        if (query) {
-            filtered = filtered.filter(inv =>
-                inv.supplier.toLowerCase().includes(query) ||
-                inv.invoiceNumber.toLowerCase().includes(query)
-            );
-        }
-
-        // Apply status filter
-        const status = statusFilter();
-        if (status !== 'all') {
-            filtered = filtered.filter(inv =>
-                status === 'paid' ? inv.paid : !inv.paid
-            );
-        }
+        let filtered = [...displayedInvoices()];
 
         // Apply sorting
         const sort = sortBy();
@@ -123,22 +133,10 @@ export default function Invoices() {
         return new Date(year, month - 1, day, hours, minutes, seconds).getTime();
     }
 
-    // Load more invoices (lazy loading)
-    function loadMoreInvoices(reset = false) {
-        const filtered = filteredInvoices();
-        const batch = reset ? 1 : currentBatch();
-        const startIndex = (batch - 1) * BATCH_SIZE;
-        const endIndex = startIndex + BATCH_SIZE;
-
-        if (reset) {
-            setDisplayedInvoices(filtered.slice(0, BATCH_SIZE));
-            setCurrentBatch(1);
-        } else {
-            setDisplayedInvoices([...displayedInvoices(), ...filtered.slice(startIndex, endIndex)]);
-        }
-
-        setHasMore(endIndex < filtered.length);
-        setLoadingMore(false);
+    // Load more invoices from server
+    function loadMoreFromServer() {
+        if (!hasMoreServer() || loadingMore()) return;
+        loadInvoices(false);
     }
 
     // Handle scroll to load more
@@ -151,128 +149,37 @@ export default function Invoices() {
         const clientHeight = el.clientHeight;
         const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 
-        // Debug scroll position
-        if (distanceFromBottom < 300) {
-            console.log('Near bottom:', {
-                distanceFromBottom,
-                loadingMore: loadingMore(),
-                hasMoreServer: hasMoreServer(),
-                displayedCount: displayedInvoices().length,
-                allInvoicesCount: allInvoices().length
-            });
-        }
-
         // Load more when 200px from bottom
-        if (distanceFromBottom < 200 && !loadingMore()) {
-            const filtered = filteredInvoices();
-            const currentDisplayed = displayedInvoices().length;
-
-            // Priority 1: Load more from already filtered data (client-side)
-            if (currentDisplayed < filtered.length) {
-                setLoadingMore(true);
-                setCurrentBatch(currentBatch() + 1);
-                setTimeout(() => loadMoreInvoices(), 100);
-            }
-            // Priority 2: All filtered data shown, check if we need more from server
-            else if (filtered.length === allInvoices().length && hasMoreServer()) {
-                // All loaded data is displayed, and server has more
-                console.log('Loading more from server...', {
-                    totalLoaded: totalLoaded(),
-                    displayedCount: currentDisplayed,
-                    hasMoreServer: hasMoreServer()
-                });
-                loadMoreFromServer();
-            }
+        if (distanceFromBottom < 200 && !loadingMore() && hasMoreServer()) {
+            loadMoreFromServer();
         }
     };
 
     // Attach scroll listener after component mounts and data is loaded
     createEffect(() => {
         // Wait for data to be loaded and displayed
-        if (!loading() && displayedInvoices().length > 0 && !scrollContainerRef) {
-            // Retry mechanism to find scroll container
-            const attachScrollListener = (retries = 0) => {
-                scrollContainerRef = document.querySelector('.invoice-container');
-                if (scrollContainerRef) {
-                    console.log('Scroll listener attached to:', scrollContainerRef);
-                    scrollContainerRef.addEventListener('scroll', handleScroll);
-                    onCleanup(() => {
-                        console.log('Scroll listener removed');
-                        if (scrollContainerRef) {
-                            scrollContainerRef.removeEventListener('scroll', handleScroll);
-                        }
-                    });
-                } else if (retries < 5) {
-                    // Retry after delay if container not found yet
-                    setTimeout(() => attachScrollListener(retries + 1), 50);
-                }
-                // Remove warning - it's normal if no invoices exist yet
-            };
+        if (!loading() && displayedInvoices().length > 0) {
+            // Always re-find container element (important after re-renders)
+            const container = document.querySelector('.invoice-container');
+            if (container) {
+                container.addEventListener('scroll', handleScroll);
 
-            // Start with small delay to ensure DOM is ready
-            setTimeout(() => attachScrollListener(), 100);
-        }
-    });
+                // Store ref for cleanup
+                scrollContainerRef = container;
 
-    // Reset when filters change
-    createEffect(() => {
-        searchQuery();
-        statusFilter();
-        sortBy();
-        loadMoreInvoices(true);
-    });
-
-    // Load more from server when scrolling
-    async function loadMoreFromServer() {
-        if (loadingMore() || !hasMoreServer()) return;
-
-        setLoadingMore(true);
-        try {
-            const currentTotal = totalLoaded();
-            console.log('Fetching from server, offset:', currentTotal);
-            const newInvoices = await api.getInvoices(BATCH_SIZE, currentTotal);
-
-            if (newInvoices.length > 0) {
-                console.log('Received', newInvoices.length, 'new invoices from server');
-                // Add new invoices from server
-                const updatedInvoices = [...allInvoices(), ...newInvoices];
-                setAllInvoices(updatedInvoices);
-                setTotalLoaded(currentTotal + newInvoices.length);
-                // Check if server has more
-                setHasMoreServer(newInvoices.length === BATCH_SIZE);
-
-                // Continue showing data without reset - just apply filter and extend display
-                const currentDisplayed = displayedInvoices().length;
-                // Show more data from the newly loaded batch
-                const nextBatch = Math.ceil(currentDisplayed / BATCH_SIZE) + 1;
-                setCurrentBatch(nextBatch);
-                loadMoreInvoices(false); // Don't reset, just extend
-            } else {
-                console.log('No more invoices from server');
-                setHasMoreServer(false);
+                // Cleanup when effect re-runs or component unmounts
+                onCleanup(() => {
+                    container.removeEventListener('scroll', handleScroll);
+                });
             }
-        } catch (error) {
-            console.error('Error loading more invoices:', error);
-        } finally {
-            setLoadingMore(false);
         }
-    }
+    });
+
+
 
     // Refresh data
     async function handleRefresh() {
-        setLoading(true);
-        try {
-            // Reset and load fresh data
-            const invoices = await api.getInvoices(BATCH_SIZE, 0);
-            setAllInvoices(invoices);
-            setTotalLoaded(invoices.length);
-            setHasMoreServer(invoices.length === BATCH_SIZE);
-            loadMoreInvoices(true);
-        } catch (error) {
-            console.error('Error refreshing invoices:', error);
-        } finally {
-            setLoading(false);
-        }
+        await loadInvoices(true);
     }
 
     // Toggle paid status
@@ -304,11 +211,8 @@ export default function Invoices() {
         try {
             await api.updateInvoice(id, { paid, paidDate: paid ? paidDate : undefined });
 
-            // Update local state
-            setAllInvoices(allInvoices().map(inv =>
-                inv.id === id ? { ...inv, paid, paidDate: paid ? paidDate : undefined } : inv
-            ));
-            loadMoreInvoices(true);
+            // Reload data from server with current filters
+            await loadInvoices(true);
 
             // Show toast
             triggerToast(paid ? 'Invoice ditandai Lunas' : 'Invoice ditandai Belum Lunas', 'success');
@@ -331,15 +235,14 @@ export default function Invoices() {
         try {
             await api.deleteInvoice(invoice.id);
 
-            // Update local state
-            setAllInvoices(allInvoices().filter(inv => inv.id !== invoice.id));
-            loadMoreInvoices(true);
+            // Reload data from server with current filters
+            await loadInvoices(true);
 
             setShowDeleteModal(false);
             setSelectedInvoice(null);
         } catch (error) {
             console.error('Error deleting invoice:', error);
-            alert('Gagal menghapus invoice');
+            triggerToast('Gagal menghapus invoice', 'error');
         }
     }
 
@@ -373,17 +276,14 @@ export default function Invoices() {
                 description: form.description
             });
 
-            // Update local state
-            setAllInvoices(allInvoices().map(inv =>
-                inv.id === invoice.id ? { ...inv, ...form } : inv
-            ));
-            loadMoreInvoices(true);
+            // Reload data from server with current filters
+            await loadInvoices(true);
 
             setShowEditModal(false);
             setSelectedInvoice(null);
         } catch (error) {
             console.error('Error updating invoice:', error);
-            alert('Gagal mengupdate invoice');
+            triggerToast('Gagal mengupdate invoice', 'error');
         }
     }
 
@@ -564,7 +464,7 @@ export default function Invoices() {
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        <For each={displayedInvoices()}>
+                                        <For each={filteredInvoices()}>
                                             {(invoice) => (
                                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -633,7 +533,7 @@ export default function Invoices() {
 
                             {/* Mobile Cards */}
                             <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
-                                <For each={displayedInvoices()}>
+                                <For each={filteredInvoices()}>
                                     {(invoice) => (
                                         <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                             <div class="flex justify-between items-start gap-2 mb-3">
@@ -711,7 +611,7 @@ export default function Invoices() {
                             </Show>
 
                             {/* End of List */}
-                            <Show when={!hasMore() && !hasMoreServer() && displayedInvoices().length > 0}>
+                            <Show when={!hasMoreServer() && displayedInvoices().length > 0}>
                                 <div class="py-4 text-center border-t border-gray-200 dark:border-gray-700">
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
                                         Semua invoice telah ditampilkan ({displayedInvoices().length} invoice)
@@ -720,7 +620,7 @@ export default function Invoices() {
                             </Show>
 
                             {/* Scroll to load more hint */}
-                            <Show when={(hasMore() || hasMoreServer()) && displayedInvoices().length > 0 && !loadingMore()}>
+                            <Show when={hasMoreServer() && displayedInvoices().length > 0 && !loadingMore()}>
                                 <div class="py-3 text-center border-t border-gray-200 dark:border-gray-700">
                                     <p class="text-xs text-gray-400 dark:text-gray-500">
                                         Scroll ke bawah untuk memuat lebih banyak...
