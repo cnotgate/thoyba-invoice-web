@@ -59,7 +59,10 @@ COMPARISON.md
 # Migration deployment scripts (keep local only)
 deploy-migration-to-production.*
 deploy-migration-docker.*
+sync-data-to-vps.*
 
 # Source data (sensitive)
 source-of-truth.csv
 *.csv
+invoices_export*.sql
+backup_*.sql
