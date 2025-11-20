@@ -844,20 +844,22 @@ export default function Invoices() {
                                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             value={editForm().total}
                                             onInput={(e) => {
-                                                // Only allow digits
+                                                // Only allow digits - no formatting while typing
                                                 const value = e.currentTarget.value.replace(/\D/g, '');
                                                 setEditForm({ ...editForm(), total: value });
                                             }}
-                                            onBlur={(e) => {
-                                                // Format on blur
-                                                const value = e.currentTarget.value.replace(/\D/g, '');
+                                            onBlur={() => {
+                                                // Format with thousands separator on blur
+                                                const value = editForm().total;
                                                 if (value) {
-                                                    e.currentTarget.value = formatWithThousandsSeparator(value);
+                                                    const formatted = formatWithThousandsSeparator(value);
+                                                    setEditForm({ ...editForm(), total: formatted });
                                                 }
                                             }}
-                                            onFocus={(e) => {
-                                                // Remove format on focus
-                                                e.currentTarget.value = editForm().total;
+                                            onFocus={() => {
+                                                // Remove formatting on focus (show only digits)
+                                                const rawValue = editForm().total.replace(/\D/g, '');
+                                                setEditForm({ ...editForm(), total: rawValue });
                                             }}
                                         />
                                     </div>
