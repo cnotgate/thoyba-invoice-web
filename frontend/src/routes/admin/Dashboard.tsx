@@ -38,7 +38,7 @@ const Dashboard: Component = () => {
 
 	const formatDate = (dateStr: string) => {
 		if (!dateStr) return 'Invalid Date';
-		
+
 		// Try parsing DD/MM/YYYY format (Indonesian format)
 		const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
 		if (ddmmyyyyMatch) {
@@ -52,7 +52,7 @@ const Dashboard: Component = () => {
 				});
 			}
 		}
-		
+
 		// Try parsing YYYY-MM-DD format (ISO format)
 		const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
 		if (isoMatch) {
@@ -66,7 +66,7 @@ const Dashboard: Component = () => {
 				});
 			}
 		}
-		
+
 		// Fallback: try native Date parsing
 		const date = new Date(dateStr);
 		if (!isNaN(date.getTime())) {
@@ -76,23 +76,24 @@ const Dashboard: Component = () => {
 				year: 'numeric',
 			});
 		}
-		
+
 		// If all parsing fails, return the original string
 		return dateStr;
 	};
 
 	const formatTimestamp = (timestampStr: string | null | undefined) => {
 		if (!timestampStr) return '-';
-		
+
 		const date = new Date(timestampStr);
 		if (isNaN(date.getTime())) return '-';
-		
+
 		return date.toLocaleString('id-ID', {
 			day: '2-digit',
 			month: 'short',
 			year: 'numeric',
 			hour: '2-digit',
 			minute: '2-digit',
+			timeZone: 'Asia/Jakarta',
 		});
 	};
 

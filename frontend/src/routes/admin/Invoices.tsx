@@ -304,7 +304,7 @@ export default function Invoices() {
     // Format date
     function formatDate(dateStr: string): string {
         if (!dateStr) return 'Invalid Date';
-        
+
         // Try parsing DD/MM/YYYY format (Indonesian format)
         const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (ddmmyyyyMatch) {
@@ -318,7 +318,7 @@ export default function Invoices() {
                 });
             }
         }
-        
+
         // Try parsing YYYY-MM-DD format (ISO format)
         const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
         if (isoMatch) {
@@ -332,7 +332,7 @@ export default function Invoices() {
                 });
             }
         }
-        
+
         // Fallback: try native Date parsing
         const date = new Date(dateStr);
         if (!isNaN(date.getTime())) {
@@ -342,23 +342,24 @@ export default function Invoices() {
                 year: 'numeric',
             });
         }
-        
+
         // If all parsing fails, return the original string
         return dateStr;
     }
 
     function formatTimestamp(timestampStr: string | null | undefined): string {
         if (!timestampStr) return '-';
-        
+
         const date = new Date(timestampStr);
         if (isNaN(date.getTime())) return '-';
-        
+
         return date.toLocaleString('id-ID', {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
+            timeZone: 'Asia/Jakarta',
         });
     }
 
@@ -468,6 +469,17 @@ export default function Invoices() {
                             <option value="status">Status</option>
                         </select>
                     </div>
+
+                    {/* Toggle Timestamp - icon only on small, label on md */}
+                    <label class="flex items-center justify-center gap-1.5 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors whitespace-nowrap">
+                        <input
+                            type="checkbox"
+                            checked={showTimestamp()}
+                            onChange={(e) => setShowTimestamp(e.currentTarget.checked)}
+                            class="w-3 h-3 md:w-4 md:h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        />
+                        <span class="hidden md:inline">Time</span>
+                    </label>
 
                     {/* Refresh Button - icon only */}
                     <button
@@ -645,6 +657,11 @@ export default function Invoices() {
                                                 </div>
                                             </div>
                                             <div class="space-y-1 mb-3">
+                                                <Show when={showTimestamp()}>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-500">
+                                                        <span class="font-medium">Timestamp:</span> {formatTimestamp(invoice.timestamp)}
+                                                    </p>
+                                                </Show>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
                                                     <span class="font-medium">Tanggal:</span> {formatDate(invoice.date)}
                                                 </p>
