@@ -55,3 +55,10 @@ PROMPT_*.md
 DOCUMENTATION.md
 IMPLEMENTATION-SUMMARY.md
 COMPARISON.md
+
+# Migration deployment scripts (keep local only)
+deploy-migration-to-production.*
+
+# Source data (sensitive)
+source-of-truth.csv
+*.csv
