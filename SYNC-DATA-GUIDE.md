@@ -16,6 +16,7 @@ Panduan untuk sinkronisasi data invoice dari database local ke VPS production.
 ## ⚠️ Sebelum Mulai
 
 **PENTING:**
+
 1. ✅ Pastikan data local sudah dalam format DECIMAL yang benar
 2. ✅ Backup database VPS dulu!
 3. ✅ Notify users akan ada downtime 5-10 menit
@@ -28,16 +29,14 @@ Panduan untuk sinkronisasi data invoice dari database local ke VPS production.
 ### Step 1: Export dari Local (Non-Docker)
 
 **Windows (PowerShell):**
+
 ```powershell
 # Export hanya table invoices (data-only)
-pg_dump -U postgres -d invoice_db `
-  --table=invoices `
-  --data-only `
-  --column-inserts `
-  > invoices_export.sql
+pg_dump -U postgres -d invoice_db --table=invoices --data-only --column-inserts > invoices_export.sql
 ```
 
 **Linux/Mac (jika local pakai Docker):**
+
 ```bash
 docker exec invoice-postgres pg_dump \
   -U postgres -d invoice_db \
@@ -50,6 +49,7 @@ docker exec invoice-postgres pg_dump \
 ### Step 2: Verify Export
 
 **Windows:**
+
 ```powershell
 # Count records
 (Get-Content invoices_export.sql | Select-String "INSERT INTO").Count
@@ -59,6 +59,7 @@ Get-Item invoices_export.sql | Select-Object Name, Length
 ```
 
 **Linux/Mac:**
+
 ```bash
 # Count records
 grep -c "INSERT INTO" invoices_export.sql
@@ -107,6 +108,16 @@ docker exec -i invoice-postgres psql \
   < invoices_export.sql
 ```
 
+**⚠️ Note:** Jika muncul error `relation "stats" does not exist`:
+```bash
+# Restart container untuk run semua migrations
+docker-compose restart backend
+
+# Atau manual create stats table
+docker exec -i invoice-postgres psql -U postgres -d invoice_db \
+  < backend/drizzle/migrations/0002_create_stats_table.sql
+```
+
 ### Step 6: Verify
 
 ```bash
@@ -130,6 +141,7 @@ docker exec invoice-postgres psql \
 ### Windows (Native PostgreSQL):
 
 **PowerShell (RECOMMENDED):**
+
 ```powershell
 # Edit configuration di script
 notepad sync-data-to-vps.ps1
@@ -146,6 +158,7 @@ notepad sync-data-to-vps.ps1
 ```
 
 **CMD (Alternative):**
+
 ```cmd
 REM Edit configuration di script
 notepad sync-data-to-vps.bat
@@ -174,6 +187,7 @@ chmod +x sync-data-to-vps.sh
 ```
 
 Script akan otomatis:
+
 - ✅ Export data local
 - ✅ Backup VPS database
 - ✅ Transfer file (Linux/Mac)
@@ -238,11 +252,13 @@ curl http://localhost:8600/api/invoices | jq '.invoices | length'
 ## 🎯 Expected Results
 
 **Before Sync (VPS):**
+
 - Count: varies
 - Total: might be incorrect
 - Format: might be VARCHAR or wrong
 
 **After Sync (VPS):**
+
 - Count: sama dengan local
 - Total: sama dengan local (e.g., 26.90 Miliar)
 - Format: DECIMAL(15,2)
@@ -252,7 +268,26 @@ curl http://localhost:8600/api/invoices | jq '.invoices | length'
 
 ## ⚠️ Troubleshooting
 
+### Error: "relation 'stats' does not exist"
+
+**Cause:** Table `stats` belum dibuat di VPS.
+
+**Solution:**
+```bash
+# Pull latest code (includes 0002_create_stats_table.sql migration)
+cd /path/to/invoice-web
+git pull origin master
+
+# Restart backend untuk run migrations
+docker-compose restart backend
+
+# Atau manual run migration
+docker exec -i invoice-postgres psql -U postgres -d invoice_db \
+  < backend/drizzle/migrations/0002_create_stats_table.sql
+```
+
 ### Error: "TRUNCATE TABLE requires permission"
+
 ```bash
 # Login sebagai postgres superuser
 docker exec -it invoice-postgres psql -U postgres invoice_db
@@ -261,6 +296,7 @@ TRUNCATE TABLE invoices RESTART IDENTITY CASCADE;
 ```
 
 ### Error: "INSERT failed - duplicate key"
+
 ```bash
 # Reset sequence
 docker exec invoice-postgres psql -U postgres -d invoice_db -c \
@@ -268,6 +304,7 @@ docker exec invoice-postgres psql -U postgres -d invoice_db -c \
 ```
 
 ### Rollback jika gagal
+
 ```bash
 docker exec -i invoice-postgres psql -U postgres invoice_db < backup_before_sync_YYYYMMDD_HHMMSS.sql
 ```
@@ -277,16 +314,19 @@ docker exec -i invoice-postgres psql -U postgres invoice_db < backup_before_sync
 ## 📝 Summary
 
 **Recommended Flow:**
+
 1. Export local → transfer → backup VPS → truncate → import → verify
 2. Atau gunakan automated script
 3. Downtime: ~5-10 menit
 4. Sangat low risk (ada backup)
 
 **Alternative:**
+
 - Jika tidak mau truncate, bisa pakai `pg_restore` dengan `--clean` flag
 - Atau manual delete dan insert per batch
 
 **After Sync:**
+
 - Test submit invoice baru
 - Verify frontend masih berfungsi
 - Monitor logs untuk errors

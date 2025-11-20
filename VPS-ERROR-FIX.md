@@ -21,8 +21,10 @@ git pull origin master
 
 **Perubahan yang di-pull:**
 - ✅ Migration file baru: `0001_alter_total_to_decimal.sql`
+- ✅ Migration file baru: `0002_create_stats_table.sql`
 - ✅ Dengan proper USING clause untuk convert data
 - ✅ Support format Indonesia dan plain number
+- ✅ Create stats table dan triggers
 
 ### 2. Restart Container
 ```bash
@@ -63,7 +65,27 @@ docker exec invoice-postgres psql -U postgres -d invoice_db -c "SELECT SUM(total
 
 ---
 
-## 🔄 Alternative: Manual Migration (Jika Pull Gagal)
+## � Error Tambahan: "relation 'stats' does not exist"
+
+**Cause:** Table `stats` belum ada setelah import data.
+
+**Solution:**
+```bash
+# Pull latest migrations
+cd /path/to/invoice-web
+git pull origin master
+
+# Restart untuk run migration 0002_create_stats_table.sql
+docker-compose restart backend
+
+# Atau manual:
+docker exec -i invoice-postgres psql -U postgres -d invoice_db \
+  < backend/drizzle/migrations/0002_create_stats_table.sql
+```
+
+---
+
+## �🔄 Alternative: Manual Migration (Jika Pull Gagal)
 
 Jika tidak bisa pull atau prefer manual:
 
@@ -74,7 +96,7 @@ docker-compose stop backend
 # 2. Run SQL manual
 docker exec -it invoice-postgres psql -U postgres -d invoice_db
 
-# 3. Execute:
+# 3. Execute untuk ALTER column:
 ALTER TABLE invoices 
 ALTER COLUMN total TYPE DECIMAL(15,2) 
 USING (
