@@ -545,43 +545,40 @@ export default function Invoices() {
                     }>
                         <div class="invoice-container overflow-auto" style="height: calc(100vh - 280px); min-height: 400px;">
                             {/* Desktop Table */}
-                            <div class="hidden md:block">
-                                <div class="overflow-x-auto">
-                                    <table class="w-full min-w-max">
-                                        {/* Scroll hint for mobile/tablet */}
-                                        <caption class="sr-only">Invoice list - scroll horizontally to see all columns</caption>
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
                                     <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0 z-10">
                                         <tr>
                                             <Show when={showTimestamp()}>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Timestamp
                                                 </th>
                                             </Show>
-                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Tanggal
                                             </th>
-                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Supplier
                                             </th>
-                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 No. Invoice
                                             </th>
-                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Cabang
                                             </th>
-                                            <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Total
                                             </th>
-                                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Tgl Pelunasan
                                             </th>
-                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden xl:table-cell">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Keterangan
                                             </th>
-                                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Aksi
                                             </th>
                                         </tr>
@@ -591,26 +588,26 @@ export default function Invoices() {
                                             {(invoice) => (
                                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                                     <Show when={showTimestamp()}>
-                                                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                                             {formatTimestamp(invoice.timestamp)}
                                                         </td>
                                                     </Show>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                         {formatDate(invoice.date)}
                                                     </td>
-                                                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-white">
+                                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
                                                         {invoice.supplier}
                                                     </td>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
                                                         {invoice.invoiceNumber}
                                                     </td>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                         {invoice.branch}
                                                     </td>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-white">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-white">
                                                         {formatCurrency(invoice.total)}
                                                     </td>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         <div class="flex items-center justify-center gap-1.5">
                                                             <span class={`text-xs font-medium ${invoice.paid
                                                                 ? 'text-green-600 dark:text-green-400'
@@ -635,13 +632,13 @@ export default function Invoices() {
                                                             </button>
                                                         </div>
                                                     </td>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-900 dark:text-white">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 dark:text-white">
                                                         {invoice.paid && invoice.paidDate ? formatDate(invoice.paidDate) : '-'}
                                                     </td>
-                                                    <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate hidden xl:table-cell">
+                                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs break-words">
                                                         {invoice.description || '-'}
                                                     </td>
-                                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         <div class="flex items-center justify-center gap-2">
                                                             <button
                                                                 onClick={() => handleEditClick(invoice)}
@@ -664,11 +661,6 @@ export default function Invoices() {
                                         </For>
                                     </tbody>
                                 </table>
-                                </div>
-                                {/* Scroll hint */}
-                                <div class="text-xs text-gray-500 dark:text-gray-400 text-center py-2 border-t border-gray-200 dark:border-gray-700 md:hidden">
-                                    ↔️ Scroll horizontal untuk melihat semua kolom
-                                </div>
                             </div>
 
                             {/* Mobile Cards */}
