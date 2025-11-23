@@ -7,14 +7,46 @@ import { generateToken } from '../utils/jwt';
 
 const authRouter = new Hono();
 
+// Password validation utility
+const validatePassword = (password: string): { valid: boolean; errors: string[] } => {
+	const errors: string[] = [];
+	if (password.length < 8) errors.push('Password must be at least 8 characters');
+	if (!/[A-Z]/.test(password)) errors.push('Password must contain uppercase letter');
+	if (!/[a-z]/.test(password)) errors.push('Password must contain lowercase letter');
+	if (!/\d/.test(password)) errors.push('Password must contain number');
+	if (!/[!@#$%^&*]/.test(password)) errors.push('Password must contain special character');
+	return { valid: errors.length === 0, errors };
+};
+
 authRouter.post('/login', async (c) => {
 	try {
-		const { username, password } = await c.req.json();
+		const body = await c.req.json();
+		const { username, password } = body;
+
+		// Input validation
+		if (!username || !password) {
+			return c.json({ success: false, message: 'Username and password are required' }, 400);
+		}
+
+		if (typeof username !== 'string' || typeof password !== 'string') {
+			return c.json({ success: false, message: 'Invalid input format' }, 400);
+		}
+
+		if (username.length < 3 || username.length > 50) {
+			return c.json({ success: false, message: 'Username must be 3-50 characters' }, 400);
+		}
+
+		if (password.length < 8) {
+			return c.json({ success: false, message: 'Password must be at least 8 characters' }, 400);
+		}
+
+		// Sanitize inputs
+		const sanitizedUsername = username.trim().toLowerCase();
 
 		// Query database with error handling
 		let user;
 		try {
-			[user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
+			[user] = await db.select().from(users).where(eq(users.username, sanitizedUsername)).limit(1);
 		} catch (dbError: any) {
 			console.error('Database error during login:', dbError);
 			return c.json(
@@ -33,6 +65,8 @@ authRouter.post('/login', async (c) => {
 		const isValid = await verifyPassword(password, user.password);
 
 		if (!isValid) {
+			// Log failed login attempt
+			console.warn(`Failed login attempt for username: ${sanitizedUsername} from IP: ${c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || c.req.header('X-Real-IP') || 'unknown'}`);
 			return c.json({ success: false, message: 'Invalid credentials' }, 401);
 		}
 
@@ -62,10 +96,42 @@ authRouter.post('/login', async (c) => {
 
 authRouter.post('/register', async (c) => {
 	try {
-		const { username, password, role = 'user' } = await c.req.json();
+		const body = await c.req.json();
+		const { username, password, role = 'user' } = body;
+
+		// Input validation
+		if (!username || !password) {
+			return c.json({ success: false, message: 'Username and password are required' }, 400);
+		}
+
+		if (typeof username !== 'string' || typeof password !== 'string') {
+			return c.json({ success: false, message: 'Invalid input format' }, 400);
+		}
+
+		if (username.length < 3 || username.length > 50) {
+			return c.json({ success: false, message: 'Username must be 3-50 characters' }, 400);
+		}
+
+		// Password strength validation
+		const passwordValidation = validatePassword(password);
+		if (!passwordValidation.valid) {
+			return c.json({
+				success: false,
+				message: 'Password does not meet requirements',
+				errors: passwordValidation.errors
+			}, 400);
+		}
+
+		// Role validation
+		if (!['admin', 'user'].includes(role)) {
+			return c.json({ success: false, message: 'Invalid role' }, 400);
+		}
+
+		// Sanitize inputs
+		const sanitizedUsername = username.trim().toLowerCase();
 
 		// Check if user exists
-		const [existing] = await db.select().from(users).where(eq(users.username, username)).limit(1);
+		const [existing] = await db.select().from(users).where(eq(users.username, sanitizedUsername)).limit(1);
 
 		if (existing) {
 			return c.json({ success: false, message: 'Username already exists' }, 400);
@@ -76,7 +142,7 @@ authRouter.post('/register', async (c) => {
 		const [newUser] = await db
 			.insert(users)
 			.values({
-				username,
+				username: sanitizedUsername,
 				password: hashedPassword,
 				role,
 			})
