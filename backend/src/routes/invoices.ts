@@ -118,13 +118,13 @@ invoiceRouter.get('/', authMiddleware, async (c) => {
 		// Build WHERE conditions
 		const conditions = [];
 
-		// Search filter (case-insensitive search in supplier and invoice number)
+		// Search filter (case-insensitive search in supplier, invoice number, and total)
 		if (search && search.trim()) {
 			const searchTerm = search.trim().toLowerCase();
 			conditions.push(
 				sql`(LOWER(${invoices.supplier}) LIKE ${`%${searchTerm}%`} OR LOWER(${
 					invoices.invoiceNumber
-				}) LIKE ${`%${searchTerm}%`})`
+				}) LIKE ${`%${searchTerm}%`} OR CAST(${invoices.total} AS TEXT) LIKE ${`%${searchTerm}%`})`
 			);
 		}
 

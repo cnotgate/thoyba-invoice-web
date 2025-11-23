@@ -422,7 +422,7 @@ export default function Invoices() {
                         <BsSearch class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Cari supplier atau no. invoice..."
+                            placeholder="Cari supplier, no. invoice, atau nominal..."
                             class="w-full pl-8 pr-3 py-1.5 md:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             value={searchQuery()}
                             onInput={(e) => setSearchQuery(e.currentTarget.value)}
