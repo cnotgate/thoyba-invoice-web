@@ -422,7 +422,7 @@ export default function Invoices() {
                         <BsSearch class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Cari supplier, no. invoice, atau nominal..."
+                            placeholder="Cari supplier, no. invoice, nominal, atau keterangan..."
                             class="w-full pl-8 pr-3 py-1.5 md:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             value={searchQuery()}
                             onInput={(e) => setSearchQuery(e.currentTarget.value)}
@@ -575,6 +575,9 @@ export default function Invoices() {
                                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Tgl Pelunasan
                                             </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Keterangan
+                                            </th>
                                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Aksi
                                             </th>
@@ -631,6 +634,9 @@ export default function Invoices() {
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 dark:text-white">
                                                         {invoice.paid && invoice.paidDate ? formatDate(invoice.paidDate) : '-'}
+                                                    </td>
+                                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                                                        {invoice.description || '-'}
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         <div class="flex items-center justify-center gap-2">
@@ -712,6 +718,11 @@ export default function Invoices() {
                                                 <Show when={invoice.paid && invoice.paidDate}>
                                                     <p class="text-sm text-green-600 dark:text-green-400">
                                                         <span class="font-medium">Tgl Pelunasan:</span> {formatDate(invoice.paidDate!)}
+                                                    </p>
+                                                </Show>
+                                                <Show when={invoice.description}>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                        <span class="font-medium">Keterangan:</span> {invoice.description}
                                                     </p>
                                                 </Show>
                                             </div>
