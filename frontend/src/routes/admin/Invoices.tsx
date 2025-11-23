@@ -24,7 +24,7 @@ export default function Invoices() {
     const [togglingInvoiceId, setTogglingInvoiceId] = createSignal<number | null>(null);
     const [editForm, setEditForm] = createSignal({
         supplier: '',
-        branch: 'Kuripan' as 'Kuripan' | 'Cempaka' | 'Gatot',
+        branch: 'Cempaka' as 'Cempaka' | 'Gatot',
         date: '',
         invoiceNumber: '',
         total: '',
@@ -864,7 +864,6 @@ export default function Invoices() {
                                             value={editForm().branch}
                                             onChange={(e) => setEditForm({ ...editForm(), branch: e.currentTarget.value as any })}
                                         >
-                                            <option value="Kuripan">Kuripan</option>
                                             <option value="Cempaka">Cempaka</option>
                                             <option value="Gatot">Gatot</option>
                                         </select>

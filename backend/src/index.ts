@@ -34,11 +34,12 @@ const loginAttemptsStore = new Map<string, { attempts: number; lastAttempt: numb
 // Get client IP with better security
 function getClientIP(c: any): string {
 	// Prioritize headers that are harder to spoof
-	const ip = c.req.header('CF-Connecting-IP') || // Cloudflare
-			   c.req.header('X-Real-IP') ||       // Nginx
-			   c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || // First IP in chain
-			   c.req.raw?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-			   '127.0.0.1'; // Local development fallback
+	const ip =
+		c.req.header('CF-Connecting-IP') || // Cloudflare
+		c.req.header('X-Real-IP') || // Nginx
+		c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || // First IP in chain
+		c.req.raw?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+		'127.0.0.1'; // Local development fallback
 
 	// Validate IP format
 	const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
@@ -114,28 +115,36 @@ app.use('/api/auth/*', async (c, next) => {
 	if (record?.blockedUntil && now < record.blockedUntil) {
 		const remainingMinutes = Math.ceil((record.blockedUntil - now) / (60 * 1000));
 		console.warn(`Blocked auth attempt from IP: ${clientIP}, remaining: ${remainingMinutes} minutes`);
-		return c.json({
-			error: 'Too many failed attempts. Try again later.',
-			retryAfter: remainingMinutes
-		}, 429);
+		return c.json(
+			{
+				error: 'Too many failed attempts. Try again later.',
+				retryAfter: remainingMinutes,
+			},
+			429
+		);
 	}
 
 	// Check rate limit within window
-	if (record && (now - record.lastAttempt) < windowMs) {
+	if (record && now - record.lastAttempt < windowMs) {
 		if (record.attempts >= maxAttempts) {
 			// Block the IP
 			const blockedUntil = now + blockDuration;
 			loginAttemptsStore.set(key, {
 				attempts: record.attempts + 1,
 				lastAttempt: now,
-				blockedUntil
+				blockedUntil,
 			});
 
-			console.error(`IP ${clientIP} blocked for ${blockDuration / (60 * 1000)} minutes due to excessive auth attempts`);
-			return c.json({
-				error: 'Account temporarily locked due to suspicious activity',
-				retryAfter: Math.ceil(blockDuration / (60 * 1000))
-			}, 429);
+			console.error(
+				`IP ${clientIP} blocked for ${blockDuration / (60 * 1000)} minutes due to excessive auth attempts`
+			);
+			return c.json(
+				{
+					error: 'Account temporarily locked due to suspicious activity',
+					retryAfter: Math.ceil(blockDuration / (60 * 1000)),
+				},
+				429
+			);
 		}
 		record.attempts++;
 		record.lastAttempt = now;
@@ -155,8 +164,7 @@ setInterval(() => {
 	const maxAge = 24 * 60 * 60 * 1000; // 24 hours
 
 	for (const [key, record] of loginAttemptsStore.entries()) {
-		if ((now - record.lastAttempt) > maxAge ||
-			(record.blockedUntil && now > record.blockedUntil)) {
+		if (now - record.lastAttempt > maxAge || (record.blockedUntil && now > record.blockedUntil)) {
 			loginAttemptsStore.delete(key);
 		}
 	}
@@ -170,7 +178,8 @@ setInterval(() => {
 // Request size limit
 app.use('*', async (c, next) => {
 	const contentLength = c.req.header('content-length');
-	if (contentLength && parseInt(contentLength) > 1024 * 1024) { // 1MB limit
+	if (contentLength && parseInt(contentLength) > 1024 * 1024) {
+		// 1MB limit
 		return c.json({ error: 'Request too large' }, 413);
 	}
 	await next();
@@ -180,7 +189,7 @@ app.use('*', async (c, next) => {
 app.use('*', async (c, next) => {
 	const origin = c.req.header('origin');
 	const corsOrigins = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:8600';
-	const allowedOrigins = corsOrigins.split(',').map(origin => origin.trim());
+	const allowedOrigins = corsOrigins.split(',').map((origin) => origin.trim());
 
 	if (origin && !allowedOrigins.includes(origin)) {
 		return c.json({ error: 'CORS policy violation' }, 403);
@@ -227,7 +236,7 @@ const validateSqlInput = (input: string): boolean => {
 		/(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b|\bALTER\b)/i,
 		/('|(\\x27)|(\\x2D\\x2D)|(\\#)|(\\x23)|(\-\-)|(\;)|(\\x3B))/i,
 	];
-	return !dangerousPatterns.some(pattern => pattern.test(input));
+	return !dangerousPatterns.some((pattern) => pattern.test(input));
 };
 
 // Health check

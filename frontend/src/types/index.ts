@@ -14,7 +14,7 @@ export interface Supplier {
 export interface Invoice {
 	id: number;
 	supplier: string;
-	branch: 'Kuripan' | 'Cempaka' | 'Gatot';
+	branch: 'Cempaka' | 'Gatot';
 	date: string;
 	invoiceNumber: string;
 	total: string;
@@ -26,7 +26,7 @@ export interface Invoice {
 
 export interface InvoiceFormData {
 	supplier: string;
-	branch: 'Kuripan' | 'Cempaka' | 'Gatot';
+	branch: 'Cempaka' | 'Gatot';
 	date: string;
 	invoiceNumber: string;
 	total: string;

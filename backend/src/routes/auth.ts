@@ -66,7 +66,14 @@ authRouter.post('/login', async (c) => {
 
 		if (!isValid) {
 			// Log failed login attempt
-			console.warn(`Failed login attempt for username: ${sanitizedUsername} from IP: ${c.req.header('CF-Connecting-IP') || c.req.header('X-Real-IP') || c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || '127.0.0.1'}`);
+			console.warn(
+				`Failed login attempt for username: ${sanitizedUsername} from IP: ${
+					c.req.header('CF-Connecting-IP') ||
+					c.req.header('X-Real-IP') ||
+					c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() ||
+					'127.0.0.1'
+				}`
+			);
 			return c.json({ success: false, message: 'Invalid credentials' }, 401);
 		}
 
@@ -115,11 +122,14 @@ authRouter.post('/register', async (c) => {
 		// Password strength validation
 		const passwordValidation = validatePassword(password);
 		if (!passwordValidation.valid) {
-			return c.json({
-				success: false,
-				message: 'Password does not meet requirements',
-				errors: passwordValidation.errors
-			}, 400);
+			return c.json(
+				{
+					success: false,
+					message: 'Password does not meet requirements',
+					errors: passwordValidation.errors,
+				},
+				400
+			);
 		}
 
 		// Role validation

@@ -17,8 +17,12 @@ invoiceRouter.post('/', async (c) => {
 		}
 
 		// Type validation
-		if (typeof data.supplier !== 'string' || typeof data.invoiceNumber !== 'string' ||
-			typeof data.total !== 'string' || typeof data.date !== 'string') {
+		if (
+			typeof data.supplier !== 'string' ||
+			typeof data.invoiceNumber !== 'string' ||
+			typeof data.total !== 'string' ||
+			typeof data.date !== 'string'
+		) {
 			return c.json({ success: false, message: 'Invalid input format' }, 400);
 		}
 

@@ -12,7 +12,7 @@ const Home: Component = () => {
 	const [suppliers] = createResource(api.getSuppliers);
 	const [formData, setFormData] = createSignal<InvoiceFormData>({
 		supplier: '',
-		branch: 'Kuripan',
+		branch: 'Cempaka',
 		date: '',
 		invoiceNumber: '',
 		total: '',
@@ -70,7 +70,7 @@ const Home: Component = () => {
 				// Reset form
 				setFormData({
 					supplier: '',
-					branch: 'Kuripan',
+					branch: 'Cempaka',
 					date: '',
 					invoiceNumber: '',
 					total: '',
@@ -119,21 +119,10 @@ const Home: Component = () => {
 									<input
 										type="radio"
 										name="branch"
-										value="Kuripan"
-										checked={formData().branch === 'Kuripan'}
-										onChange={() => setFormData({ ...formData(), branch: 'Kuripan' })}
-										required
-										class="mr-2"
-									/>
-									Kuripan
-								</label>
-								<label class="flex items-center">
-									<input
-										type="radio"
-										name="branch"
 										value="Cempaka"
 										checked={formData().branch === 'Cempaka'}
 										onChange={() => setFormData({ ...formData(), branch: 'Cempaka' })}
+										required
 										class="mr-2"
 									/>
 									Cempaka
