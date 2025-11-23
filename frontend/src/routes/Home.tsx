@@ -25,6 +25,32 @@ const Home: Component = () => {
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
+
+		// Frontend validation
+		const data = formData();
+		const errors: string[] = [];
+
+		if (!data.supplier.trim()) errors.push('Supplier harus diisi');
+		if (!data.date) errors.push('Tanggal harus diisi');
+		if (!data.invoiceNumber.trim()) errors.push('Nomor invoice harus diisi');
+		if (!data.total.trim()) errors.push('Total harus diisi');
+
+		if (data.supplier.length > 200) errors.push('Supplier maksimal 200 karakter');
+		if (data.invoiceNumber.length > 100) errors.push('Nomor invoice maksimal 100 karakter');
+		if (data.description && data.description.length > 500) errors.push('Keterangan maksimal 500 karakter');
+
+		// Validate total format
+		if (data.total && !/^\d+(\.\d{1,2})?$/.test(data.total.replace(/[.,\s]/g, '').replace(',', '.'))) {
+			errors.push('Format total tidak valid');
+		}
+
+		if (errors.length > 0) {
+			setToastType('error');
+			setToastMessage('Validation Error: ' + errors.join(', '));
+			setShowToast(true);
+			return;
+		}
+
 		setIsSubmitting(true);
 
 		try {
