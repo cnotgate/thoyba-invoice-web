@@ -198,6 +198,23 @@ export default function Invoices() {
         }
     }
 
+    // Submit payment date
+    async function handlePaymentSubmit(e: Event) {
+        e.preventDefault();
+        const invoice = selectedInvoice();
+        if (!invoice) return;
+
+        await updateInvoiceStatus(invoice.id, true, paymentDate());
+        setShowPaymentModal(false);
+        setSelectedInvoice(null);
+    }
+
+    // Cancel unpay confirmation
+    function handleCancelUnpay() {
+        setShowUnpayConfirmModal(false);
+        setSelectedInvoice(null);
+    }
+
     // Confirm unpay invoice
     async function handleConfirmUnpay() {
         const invoice = selectedInvoice();
@@ -208,10 +225,25 @@ export default function Invoices() {
         setSelectedInvoice(null);
     }
 
-    // Cancel unpay confirmation
-    function handleCancelUnpay() {
-        setShowUnpayConfirmModal(false);
-        setSelectedInvoice(null);
+    // Update invoice status locally without refreshing the list
+    function updateInvoiceLocally(id: number, paid: boolean, paidDate: string) {
+        // Update in allInvoices
+        setAllInvoices(invoices =>
+            invoices.map(invoice =>
+                invoice.id === id
+                    ? { ...invoice, paid, paidDate: paid ? paidDate : undefined }
+                    : invoice
+            )
+        );
+
+        // Update in displayedInvoices
+        setDisplayedInvoices(invoices =>
+            invoices.map(invoice =>
+                invoice.id === id
+                    ? { ...invoice, paid, paidDate: paid ? paidDate : undefined }
+                    : invoice
+            )
+        );
     }
 
     // Update invoice status
@@ -219,8 +251,8 @@ export default function Invoices() {
         try {
             await api.updateInvoice(id, { paid, paidDate: paid ? paidDate : undefined });
 
-            // Reload data from server with current filters
-            await loadInvoices(true);
+            // Update locally instead of reloading
+            updateInvoiceLocally(id, paid, paidDate);
 
             // Show toast
             triggerToast(paid ? 'Invoice ditandai Lunas' : 'Invoice ditandai Belum Lunas', 'success');
