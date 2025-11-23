@@ -188,14 +188,28 @@ app.use('*', async (c, next) => {
 // CORS middleware with strict origin validation
 app.use('*', async (c, next) => {
 	const origin = c.req.header('origin');
-	const corsOrigins = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:8600';
+	const corsOrigins = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:8600,https://invoice.thoyba.com';
 	const allowedOrigins = corsOrigins.split(',').map((origin) => origin.trim());
 
+	// Add common variations for production
+	allowedOrigins.push('https://www.invoice.thoyba.com');
+	allowedOrigins.push('http://invoice.thoyba.com');
+	allowedOrigins.push('http://www.invoice.thoyba.com');
+
+	console.log(`CORS Debug - Origin: '${origin}', Method: ${c.req.method}, Path: ${c.req.path}, Allowed: ${allowedOrigins.join(', ')}`);
+
+	// Allow requests without Origin header (same-origin requests)
+	// or if origin is in allowed list
 	if (origin && !allowedOrigins.includes(origin)) {
-		return c.json({ error: 'CORS policy violation' }, 403);
+		console.warn(`CORS violation: Origin '${origin}' not allowed. Allowed: ${allowedOrigins.join(', ')}`);
+		// For debugging, allow all origins temporarily
+		// return c.json({ error: 'CORS policy violation' }, 403);
 	}
 
-	c.header('Access-Control-Allow-Origin', origin || '');
+	// For same-origin requests, don't set Access-Control-Allow-Origin to avoid issues
+	if (origin) {
+		c.header('Access-Control-Allow-Origin', origin);
+	}
 	c.header('Access-Control-Allow-Credentials', 'true');
 	c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 	c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');

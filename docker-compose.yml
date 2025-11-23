@@ -32,6 +32,7 @@ services: # PostgreSQL Database
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME:-invoice_db}
       - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=https://invoice.thoyba.com,https://www.invoice.thoyba.com,http://localhost:3000,http://localhost:8600
     depends_on:
       postgres:
         condition: service_healthy
