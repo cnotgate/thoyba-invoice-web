@@ -66,7 +66,7 @@ authRouter.post('/login', async (c) => {
 
 		if (!isValid) {
 			// Log failed login attempt
-			console.warn(`Failed login attempt for username: ${sanitizedUsername} from IP: ${c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || c.req.header('X-Real-IP') || 'unknown'}`);
+			console.warn(`Failed login attempt for username: ${sanitizedUsername} from IP: ${c.req.header('CF-Connecting-IP') || c.req.header('X-Real-IP') || c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || '127.0.0.1'}`);
 			return c.json({ success: false, message: 'Invalid credentials' }, 401);
 		}
 

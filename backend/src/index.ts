@@ -5,6 +5,10 @@ import { authRouter } from './routes/auth';
 import { invoiceRouter } from './routes/invoices';
 import { supplierRouter } from './routes/suppliers';
 import { userRouter } from './routes/users';
+import { config } from 'dotenv';
+
+// Load environment variables
+config();
 
 const app = new Hono();
 
@@ -34,7 +38,7 @@ function getClientIP(c: any): string {
 			   c.req.header('X-Real-IP') ||       // Nginx
 			   c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || // First IP in chain
 			   c.req.raw?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-			   'unknown';
+			   '127.0.0.1'; // Local development fallback
 
 	// Validate IP format
 	const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
@@ -44,7 +48,8 @@ function getClientIP(c: any): string {
 		return ip;
 	}
 
-	return 'unknown';
+	// Fallback for development
+	return '127.0.0.1';
 }
 
 // General rate limiting middleware (100 req/15min)
@@ -142,19 +147,6 @@ app.use('/api/auth/*', async (c, next) => {
 	// Store auth attempt result for cleanup
 	const authKey = key;
 	await next();
-
-	// Clean up successful logins (reduce suspicion level) - check response after next()
-	try {
-		const response = c.res;
-		if (response.status === 200 && c.req.path.includes('/login')) {
-			const record = loginAttemptsStore.get(authKey);
-			if (record && record.attempts > 0) {
-				record.attempts = Math.max(0, record.attempts - 1); // Reduce suspicion
-			}
-		}
-	} catch (e) {
-		// Ignore errors in response checking
-	}
 });
 
 // Clean up old auth attempt records periodically
@@ -187,11 +179,8 @@ app.use('*', async (c, next) => {
 // CORS middleware with strict origin validation
 app.use('*', async (c, next) => {
 	const origin = c.req.header('origin');
-	const allowedOrigins = [
-		'http://localhost:3000',
-		'http://localhost:8600',
-		'https://yourdomain.com', // Replace with your actual domain in production
-	];
+	const corsOrigins = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:8600';
+	const allowedOrigins = corsOrigins.split(',').map(origin => origin.trim());
 
 	if (origin && !allowedOrigins.includes(origin)) {
 		return c.json({ error: 'CORS policy violation' }, 403);

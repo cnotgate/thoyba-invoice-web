@@ -11,15 +11,60 @@ invoiceRouter.post('/', async (c) => {
 	try {
 		const data = await c.req.json();
 
+		// Input validation
+		if (!data.supplier || !data.branch || !data.date || !data.invoiceNumber || !data.total) {
+			return c.json({ success: false, message: 'All required fields must be provided' }, 400);
+		}
+
+		// Type validation
+		if (typeof data.supplier !== 'string' || typeof data.invoiceNumber !== 'string' ||
+			typeof data.total !== 'string' || typeof data.date !== 'string') {
+			return c.json({ success: false, message: 'Invalid input format' }, 400);
+		}
+
+		// Length and format validation
+		if (data.supplier.length < 2 || data.supplier.length > 200) {
+			return c.json({ success: false, message: 'Supplier name must be 2-200 characters' }, 400);
+		}
+
+		if (data.invoiceNumber.length < 1 || data.invoiceNumber.length > 100) {
+			return c.json({ success: false, message: 'Invoice number must be 1-100 characters' }, 400);
+		}
+
+		if (!['Kuripan', 'Cempaka', 'Gatot'].includes(data.branch)) {
+			return c.json({ success: false, message: 'Invalid branch' }, 400);
+		}
+
+		// Date validation
+		const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+		if (!dateRegex.test(data.date)) {
+			return c.json({ success: false, message: 'Invalid date format (YYYY-MM-DD)' }, 400);
+		}
+
+		// Total validation (should be numeric string)
+		if (!/^\d+(\.\d{1,2})?$/.test(data.total)) {
+			return c.json({ success: false, message: 'Invalid total format' }, 400);
+		}
+
+		// Sanitize inputs
+		const sanitizedData = {
+			supplier: data.supplier.trim().slice(0, 200),
+			branch: data.branch,
+			date: data.date,
+			invoiceNumber: data.invoiceNumber.trim().slice(0, 100),
+			total: data.total,
+			description: data.description ? data.description.trim().slice(0, 500) : null,
+		};
+
 		const [newInvoice] = await db
 			.insert(invoices)
 			.values({
-				supplier: data.supplier,
-				branch: data.branch,
-				date: data.date,
-				invoiceNumber: data.invoiceNumber,
-				total: data.total,
-				description: data.description || null,
+				supplier: sanitizedData.supplier,
+				branch: sanitizedData.branch,
+				date: sanitizedData.date,
+				invoiceNumber: sanitizedData.invoiceNumber,
+				total: sanitizedData.total,
+				description: sanitizedData.description,
 				paid: false,
 			})
 			.returning();
