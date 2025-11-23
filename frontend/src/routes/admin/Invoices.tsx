@@ -573,6 +573,9 @@ export default function Invoices() {
                                                 Status
                                             </th>
                                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Tgl Pelunasan
+                                            </th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Aksi
                                             </th>
                                         </tr>
@@ -625,6 +628,9 @@ export default function Invoices() {
                                                                 />
                                                             </button>
                                                         </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 dark:text-white">
+                                                        {invoice.paid && invoice.paidDate ? formatDate(invoice.paidDate) : '-'}
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         <div class="flex items-center justify-center gap-2">
@@ -703,6 +709,11 @@ export default function Invoices() {
                                                 <p class="text-sm font-semibold text-gray-900 dark:text-white">
                                                     {formatCurrency(invoice.total)}
                                                 </p>
+                                                <Show when={invoice.paid && invoice.paidDate}>
+                                                    <p class="text-sm text-green-600 dark:text-green-400">
+                                                        <span class="font-medium">Tgl Pelunasan:</span> {formatDate(invoice.paidDate!)}
+                                                    </p>
+                                                </Show>
                                             </div>
                                             <div class="grid grid-cols-2 gap-2">
                                                 <button
