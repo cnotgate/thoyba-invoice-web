@@ -81,15 +81,13 @@ function parseTotal(totalStr: string): string {
 	if (!totalStr) return '0';
 
 	// Remove "Rp" and spaces first
-	let cleaned = totalStr
-		.replace(/Rp/gi, '')
-		.replace(/\s+/g, '');
+	let cleaned = totalStr.replace(/Rp/gi, '').replace(/\s+/g, '');
 
 	// Detect format from the CSV:
 	// 1. " Rp 4.118.000,00 " - Indonesian with comma (dots=thousands, comma=decimal)
 	// 2. "165.522" - Plain with dots only (dots=thousands, no decimal)
 	// 3. " 56.489.562.78 " - Plain with dots (dots=thousands AND last .XX is decimal)
-	
+
 	if (cleaned.includes(',')) {
 		// Format 1: Indonesian with comma
 		// "4.118.000,00" → "4118000.00"
@@ -147,7 +145,7 @@ async function reimportFromCSV() {
 
 			try {
 				let timestamp = parseTimestamp(record.Timestamp);
-				
+
 				// If timestamp is empty/invalid, use date as fallback at 00:00:00
 				if (!timestamp) {
 					const date = parseIndonesianDate(record['Tanggal Nota']);

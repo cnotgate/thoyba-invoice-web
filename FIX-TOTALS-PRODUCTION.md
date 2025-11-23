@@ -148,6 +148,7 @@ docker exec -it invoice-web-db-1 psql -U postgres -d invoice_db -c "SELECT COUNT
 ## If Something Goes Wrong
 
 1. **Backup before running (inside database container):**
+
    ```bash
    docker exec -it invoice-web-db-1 pg_dump -U postgres -d invoice_db > /root/backup_before_fix.sql
    ```
@@ -162,6 +163,7 @@ docker exec -it invoice-web-db-1 psql -U postgres -d invoice_db -c "SELECT COUNT
 ## Root Cause (Fixed in Code)
 
 The bug was in `reimport-from-csv.ts` parseTotal() function. It didn't handle format `56.489.562.78` correctly:
+
 - ❌ Old: Read as 5,648,956,278 (5.6 billion)
 - ✅ New: Read as 56,489,562.78 (56 million)
 

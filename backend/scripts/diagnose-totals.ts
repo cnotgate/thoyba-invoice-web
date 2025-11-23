@@ -25,10 +25,18 @@ async function diagnoseTotals() {
 		console.log('📊 Overall Statistics:');
 		console.log('━'.repeat(80));
 		console.log(`Total invoices: ${stats.count}`);
-		console.log(`Min total: Rp ${parseFloat(stats.min_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
-		console.log(`Max total: Rp ${parseFloat(stats.max_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
-		console.log(`Avg total: Rp ${parseFloat(stats.avg_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
-		console.log(`Sum total: Rp ${parseFloat(stats.sum_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
+		console.log(
+			`Min total: Rp ${parseFloat(stats.min_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`
+		);
+		console.log(
+			`Max total: Rp ${parseFloat(stats.max_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`
+		);
+		console.log(
+			`Avg total: Rp ${parseFloat(stats.avg_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`
+		);
+		console.log(
+			`Sum total: Rp ${parseFloat(stats.sum_total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`
+		);
 		console.log('━'.repeat(80));
 		console.log();
 
@@ -40,7 +48,7 @@ async function diagnoseTotals() {
 			{ name: '50M - 100M', min: 50000000, max: 100000000 },
 			{ name: '100M - 500M', min: 100000000, max: 500000000 },
 			{ name: '500M - 1B', min: 500000000, max: 1000000000 },
-			{ name: '> 1 billion', min: 1000000000, max: 999999999999 }
+			{ name: '> 1 billion', min: 1000000000, max: 999999999999 },
 		];
 
 		console.log('📈 Distribution by Range:');
@@ -55,9 +63,14 @@ async function diagnoseTotals() {
 			const rangeStats = result[0] as any;
 			const count = parseInt(rangeStats.count);
 			const sum = parseFloat(rangeStats.sum_total || 0);
-			
+
 			if (count > 0) {
-				console.log(`${range.name.padEnd(20)} : ${count.toString().padStart(5)} invoices | Total: Rp ${sum.toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
+				console.log(
+					`${range.name.padEnd(20)} : ${count.toString().padStart(5)} invoices | Total: Rp ${sum.toLocaleString(
+						'id-ID',
+						{ minimumFractionDigits: 2 }
+					)}`
+				);
 			}
 		}
 		console.log('━'.repeat(80));
@@ -75,11 +88,13 @@ async function diagnoseTotals() {
 		console.log('━'.repeat(80));
 		console.log('No  | Invoice Number          | Total (Rp)          | Date        | Supplier');
 		console.log('━'.repeat(80));
-		
+
 		highInvoices.forEach((inv, idx) => {
 			const num = (idx + 1).toString().padStart(2);
 			const invoiceNum = inv.invoiceNumber.padEnd(25);
-			const total = parseFloat(inv.total as string).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).padStart(19);
+			const total = parseFloat(inv.total as string)
+				.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+				.padStart(19);
 			const date = inv.date.padEnd(12);
 			const supplier = inv.supplier.substring(0, 30);
 			console.log(`${num}  | ${invoiceNum} | ${total} | ${date} | ${supplier}`);
@@ -97,7 +112,11 @@ async function diagnoseTotals() {
 			console.log(`⚠️  WARNING: Found ${anomalies.length} invoices with totals > 1 billion (likely incorrect):`);
 			console.log('━'.repeat(80));
 			anomalies.slice(0, 10).forEach((inv) => {
-				console.log(`${inv.invoiceNumber}: Rp ${parseFloat(inv.total as string).toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
+				console.log(
+					`${inv.invoiceNumber}: Rp ${parseFloat(inv.total as string).toLocaleString('id-ID', {
+						minimumFractionDigits: 2,
+					})}`
+				);
 			});
 			if (anomalies.length > 10) {
 				console.log(`... and ${anomalies.length - 10} more`);

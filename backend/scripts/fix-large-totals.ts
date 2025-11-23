@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm';
 
 /**
  * Advanced fix for incorrectly parsed totals
- * 
+ *
  * This handles cases where invoices were parsed with wrong decimal placement
  * Strategy: Check invoices with totals > 100M and analyze their patterns
  */
@@ -32,20 +32,26 @@ async function fixLargeTotals() {
 		console.log('━'.repeat(100));
 		console.log('Invoice Number          | Total (Rp)          | Date        | Supplier');
 		console.log('━'.repeat(100));
-		
+
 		let totalBeforeFix = 0;
 		largeInvoices.forEach((inv) => {
 			const invoiceNum = inv.invoiceNumber.padEnd(25);
 			const total = parseFloat(inv.total as string);
 			totalBeforeFix += total;
-			const totalStr = total.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).padStart(19);
+			const totalStr = total
+				.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+				.padStart(19);
 			const date = inv.date.padEnd(12);
 			const supplier = inv.supplier.substring(0, 40);
 			console.log(`${invoiceNum} | ${totalStr} | ${date} | ${supplier}`);
 		});
 		console.log('━'.repeat(100));
 		console.log(`\nTotal BEFORE fix: Rp ${totalBeforeFix.toLocaleString('id-ID', { minimumFractionDigits: 2 })}`);
-		console.log(`Total AFTER fix (÷100): Rp ${(totalBeforeFix / 100).toLocaleString('id-ID', { minimumFractionDigits: 2 })}\n`);
+		console.log(
+			`Total AFTER fix (÷100): Rp ${(totalBeforeFix / 100).toLocaleString('id-ID', {
+				minimumFractionDigits: 2,
+			})}\n`
+		);
 
 		// Ask for confirmation (in production, you'd want manual review)
 		console.log('⚠️  These invoices will be divided by 100.');
@@ -77,16 +83,25 @@ async function fixLargeTotals() {
 		const verifyInvoices = await db
 			.select()
 			.from(invoices)
-			.where(sql`${invoices.id} IN (${sql.raw(largeInvoices.slice(0, 10).map((i) => i.id).join(','))})`);
+			.where(
+				sql`${invoices.id} IN (${sql.raw(
+					largeInvoices
+						.slice(0, 10)
+						.map((i) => i.id)
+						.join(',')
+				)})`
+			);
 
 		console.log('Sample invoices AFTER fix:');
 		console.log('━'.repeat(100));
 		console.log('Invoice Number          | Total (Rp)          | Date        | Supplier');
 		console.log('━'.repeat(100));
-		
+
 		verifyInvoices.forEach((inv) => {
 			const invoiceNum = inv.invoiceNumber.padEnd(25);
-			const total = parseFloat(inv.total as string).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).padStart(19);
+			const total = parseFloat(inv.total as string)
+				.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+				.padStart(19);
 			const date = inv.date.padEnd(12);
 			const supplier = inv.supplier.substring(0, 40);
 			console.log(`${invoiceNum} | ${total} | ${date} | ${supplier}`);
@@ -95,14 +110,17 @@ async function fixLargeTotals() {
 		console.log();
 
 		// Show new database totals
-		const result = await db.execute(
-			sql`SELECT COUNT(*) as count, SUM(total) as total FROM invoices`
-		);
+		const result = await db.execute(sql`SELECT COUNT(*) as count, SUM(total) as total FROM invoices`);
 
 		const stats = result[0] as { count: string; total: string };
 		console.log(`📊 Database totals after fix:`);
 		console.log(`   Total invoices: ${stats.count}`);
-		console.log(`   Total value: Rp ${parseFloat(stats.total).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+		console.log(
+			`   Total value: Rp ${parseFloat(stats.total).toLocaleString('id-ID', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			})}`
+		);
 		console.log();
 
 		// Verify no more large invoices
