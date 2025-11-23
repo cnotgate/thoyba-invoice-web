@@ -21,6 +21,7 @@ export default function Invoices() {
     const [selectedInvoice, setSelectedInvoice] = createSignal<Invoice | null>(null);
     const [paymentDate, setPaymentDate] = createSignal('');
     const [showTimestamp, setShowTimestamp] = createSignal(false);
+    const [togglingInvoiceId, setTogglingInvoiceId] = createSignal<number | null>(null);
     const [editForm, setEditForm] = createSignal({
         supplier: '',
         branch: 'Kuripan' as 'Kuripan' | 'Cempaka' | 'Gatot',
@@ -249,6 +250,7 @@ export default function Invoices() {
     // Update invoice status
     async function updateInvoiceStatus(id: number, paid: boolean, paidDate: string) {
         try {
+            setTogglingInvoiceId(id);
             await api.updateInvoice(id, { paid, paidDate: paid ? paidDate : undefined });
 
             // Update locally instead of reloading
@@ -259,6 +261,8 @@ export default function Invoices() {
         } catch (error) {
             console.error('Error updating invoice:', error);
             triggerToast('Gagal mengubah status pembayaran', 'error');
+        } finally {
+            setTogglingInvoiceId(null);
         }
     }
 
@@ -607,15 +611,16 @@ export default function Invoices() {
                                                             </span>
                                                             <button
                                                                 onClick={() => handleTogglePaid(invoice)}
-                                                                class={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${invoice.paid
-                                                                    ? 'bg-green-500 focus:ring-green-500'
-                                                                    : 'bg-red-500 focus:ring-red-500'
+                                                                disabled={togglingInvoiceId() === invoice.id}
+                                                                class={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 hover:scale-110 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${invoice.paid
+                                                                    ? 'bg-green-500 focus:ring-green-500 hover:bg-green-600'
+                                                                    : 'bg-red-500 focus:ring-red-500 hover:bg-red-600'
                                                                     }`}
                                                                 role="switch"
                                                                 aria-checked={invoice.paid}
                                                             >
                                                                 <span
-                                                                    class={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.paid ? 'translate-x-5' : 'translate-x-0.5'
+                                                                    class={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-all duration-300 ease-in-out ${togglingInvoiceId() === invoice.id ? 'animate-pulse' : ''} ${invoice.paid ? 'translate-x-5' : 'translate-x-0.5'
                                                                         }`}
                                                                 />
                                                             </button>
@@ -669,15 +674,16 @@ export default function Invoices() {
                                                     </span>
                                                     <button
                                                         onClick={() => handleTogglePaid(invoice)}
-                                                        class={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${invoice.paid
-                                                            ? 'bg-green-500 focus:ring-green-500'
-                                                            : 'bg-red-500 focus:ring-red-500'
+                                                        disabled={togglingInvoiceId() === invoice.id}
+                                                        class={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 hover:scale-110 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${invoice.paid
+                                                            ? 'bg-green-500 focus:ring-green-500 hover:bg-green-600'
+                                                            : 'bg-red-500 focus:ring-red-500 hover:bg-red-600'
                                                             }`}
                                                         role="switch"
                                                         aria-checked={invoice.paid}
                                                     >
                                                         <span
-                                                            class={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.paid ? 'translate-x-5' : 'translate-x-0.5'
+                                                            class={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-all duration-300 ease-in-out ${togglingInvoiceId() === invoice.id ? 'animate-pulse' : ''} ${invoice.paid ? 'translate-x-5' : 'translate-x-0.5'
                                                                 }`}
                                                         />
                                                     </button>
