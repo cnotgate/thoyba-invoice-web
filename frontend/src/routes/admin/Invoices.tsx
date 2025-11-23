@@ -17,10 +17,10 @@ export default function Invoices() {
     const [showPaymentModal, setShowPaymentModal] = createSignal(false);
     const [showDeleteModal, setShowDeleteModal] = createSignal(false);
     const [showEditModal, setShowEditModal] = createSignal(false);
+    const [showUnpayConfirmModal, setShowUnpayConfirmModal] = createSignal(false);
     const [selectedInvoice, setSelectedInvoice] = createSignal<Invoice | null>(null);
     const [paymentDate, setPaymentDate] = createSignal('');
     const [showTimestamp, setShowTimestamp] = createSignal(false);
-    const [totalInputFocused, setTotalInputFocused] = createSignal(false);
     const [editForm, setEditForm] = createSignal({
         supplier: '',
         branch: 'Kuripan' as 'Kuripan' | 'Cempaka' | 'Gatot',
@@ -189,8 +189,8 @@ export default function Invoices() {
     function handleTogglePaid(invoice: Invoice) {
         setSelectedInvoice(invoice);
         if (invoice.paid) {
-            // Unpay invoice
-            updateInvoiceStatus(invoice.id, false, '');
+            // Show confirmation modal before unpaying
+            setShowUnpayConfirmModal(true);
         } else {
             // Show payment date modal
             setPaymentDate(new Date().toISOString().split('T')[0]);
@@ -198,14 +198,19 @@ export default function Invoices() {
         }
     }
 
-    // Submit payment date
-    async function handlePaymentSubmit(e: Event) {
-        e.preventDefault();
+    // Confirm unpay invoice
+    async function handleConfirmUnpay() {
         const invoice = selectedInvoice();
         if (!invoice) return;
 
-        await updateInvoiceStatus(invoice.id, true, paymentDate());
-        setShowPaymentModal(false);
+        await updateInvoiceStatus(invoice.id, false, '');
+        setShowUnpayConfirmModal(false);
+        setSelectedInvoice(null);
+    }
+
+    // Cancel unpay confirmation
+    function handleCancelUnpay() {
+        setShowUnpayConfirmModal(false);
         setSelectedInvoice(null);
     }
 
@@ -845,35 +850,20 @@ export default function Invoices() {
                                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             value={editForm().total}
                                             onInput={(e) => {
-                                                // CRITICAL: Only strip non-digits, don't re-render while focused
-                                                const input = e.currentTarget;
-                                                const cursorPos = input.selectionStart || 0;
-                                                const rawValue = input.value.replace(/\D/g, '');
-                                                
-                                                // Update state without triggering re-render that moves cursor
-                                                setEditForm({ ...editForm(), total: rawValue });
-                                                
-                                                // Restore cursor position after React/Solid updates DOM
-                                                requestAnimationFrame(() => {
-                                                    if (input === document.activeElement) {
-                                                        input.setSelectionRange(cursorPos, cursorPos);
-                                                    }
-                                                });
+                                                // Only allow digits
+                                                const value = e.currentTarget.value.replace(/\D/g, '');
+                                                setEditForm({ ...editForm(), total: value });
                                             }}
                                             onBlur={(e) => {
-                                                setTotalInputFocused(false);
-                                                // Format with thousands separator ONLY on blur
-                                                const rawValue = e.currentTarget.value.replace(/\D/g, '');
-                                                if (rawValue) {
-                                                    const formatted = formatWithThousandsSeparator(rawValue);
-                                                    setEditForm({ ...editForm(), total: formatted });
+                                                // Format on blur
+                                                const value = e.currentTarget.value.replace(/\D/g, '');
+                                                if (value) {
+                                                    e.currentTarget.value = formatWithThousandsSeparator(value);
                                                 }
                                             }}
                                             onFocus={(e) => {
-                                                setTotalInputFocused(true);
-                                                // Remove formatting on focus - show only raw digits
-                                                const rawValue = e.currentTarget.value.replace(/\D/g, '');
-                                                setEditForm({ ...editForm(), total: rawValue });
+                                                // Remove format on focus
+                                                e.currentTarget.value = editForm().total;
                                             }}
                                         />
                                     </div>
@@ -908,6 +898,74 @@ export default function Invoices() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Unpay Confirmation Modal */}
+            <Show when={showUnpayConfirmModal()}>
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Konfirmasi Ubah Status
+                            </h3>
+                            <div class="mb-6">
+                                <div class="flex items-center justify-center mb-4">
+                                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p class="text-gray-700 dark:text-gray-300 mb-3">
+                                    Apakah Anda yakin ingin mengubah status invoice ini menjadi <strong>Belum Lunas</strong>?
+                                </p>
+                                <Show when={selectedInvoice()}>
+                                    {(invoice) => (
+                                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">Supplier:</span>
+                                                <span class="ml-2 text-gray-900 dark:text-white">{invoice().supplier}</span>
+                                            </p>
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">No. Invoice:</span>
+                                                <span class="ml-2 text-gray-900 dark:text-white font-mono">{invoice().invoiceNumber}</span>
+                                            </p>
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">Total:</span>
+                                                <span class="ml-2 text-gray-900 dark:text-white font-semibold">{formatCurrency(invoice().total)}</span>
+                                            </p>
+                                            <p class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">Status Saat Ini:</span>
+                                                <span class="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs font-medium">
+                                                    Lunas
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </Show>
+                                <p class="text-sm text-yellow-600 dark:text-yellow-400 mt-4">
+                                    <strong>Perhatian:</strong> Invoice akan kembali ke status belum lunas dan tanggal pembayaran akan dihapus.
+                                </p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleCancelUnpay}
+                                    class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmUnpay}
+                                    class="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+                                >
+                                    Ubah ke Belum Lunas
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
