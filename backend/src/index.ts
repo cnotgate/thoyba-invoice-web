@@ -66,6 +66,19 @@ app.use('*', async (c, next) => {
 		return;
 	}
 
+	// Skip rate limiting for authenticated users
+	const authHeader = c.req.header('Authorization');
+	if (authHeader && authHeader.startsWith('Bearer ')) {
+		const token = authHeader.substring(7);
+		const { verifyToken } = await import('./utils/jwt');
+		const payload = await verifyToken(token);
+		if (payload) {
+			// User is authenticated, skip rate limiting
+			await next();
+			return;
+		}
+	}
+
 	const key = `general:${clientIP}:${Math.floor(now / windowMs)}`;
 	const record = rateLimitStore.get(key);
 
@@ -188,7 +201,8 @@ app.use('*', async (c, next) => {
 // CORS middleware with strict origin validation
 app.use('*', async (c, next) => {
 	const origin = c.req.header('origin');
-	const corsOrigins = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:8600,https://invoice.thoyba.com';
+	const corsOrigins =
+		process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:8600,https://invoice.thoyba.com';
 	const allowedOrigins = corsOrigins.split(',').map((origin) => origin.trim());
 
 	// Add common variations for production
@@ -196,7 +210,11 @@ app.use('*', async (c, next) => {
 	allowedOrigins.push('http://invoice.thoyba.com');
 	allowedOrigins.push('http://www.invoice.thoyba.com');
 
-	console.log(`CORS Debug - Origin: '${origin}', Method: ${c.req.method}, Path: ${c.req.path}, Allowed: ${allowedOrigins.join(', ')}`);
+	console.log(
+		`CORS Debug - Origin: '${origin}', Method: ${c.req.method}, Path: ${
+			c.req.path
+		}, Allowed: ${allowedOrigins.join(', ')}`
+	);
 
 	// Allow requests without Origin header (same-origin requests)
 	// or if origin is in allowed list
