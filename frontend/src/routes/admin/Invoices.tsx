@@ -293,12 +293,16 @@ export default function Invoices() {
     // Edit invoice
     function handleEditClick(invoice: Invoice) {
         setSelectedInvoice(invoice);
+        // Extract only the integer part, remove decimal places
+        const cleanTotal = invoice.total.replace(/[^0-9.-]/g, '');
+        const integerOnly = cleanTotal.includes('.') ? cleanTotal.split('.')[0] : cleanTotal;
+
         setEditForm({
             supplier: invoice.supplier,
             branch: invoice.branch,
             date: invoice.date,
             invoiceNumber: invoice.invoiceNumber,
-            total: invoice.total.replace(/[^0-9.-]/g, ''),
+            total: integerOnly,
             description: invoice.description || ''
         });
         setShowEditModal(true);
